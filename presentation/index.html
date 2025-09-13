@@ -1,0 +1,2858 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Solana SuperApp — Web3 DeFi на Solana</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- AOS Animation Library -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif']
+          },
+          colors: {
+            solana: {
+              purple: '#9945FF',
+              cyan: '#14F195',
+            }
+          },
+          dropShadow: {
+            glow: [
+              '0 0 20px rgba(153,69,255,0.35)',
+              '0 0 40px rgba(20,241,149,0.25)'
+            ]
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom styles for animated gradient + reveal effects -->
+  <style>
+    :root { color-scheme: dark; }
+    body { background: #0b0b10; overflow-x: hidden; }
+
+    /* EPIC FIREWORKS & PARTICLES */
+    .fireworks-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .firework {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      animation: firework 2s ease-out forwards;
+    }
+
+    @keyframes firework {
+      0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 1;
+      }
+      15% {
+        transform: translateY(20vh) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(20vh) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: radial-gradient(circle, #14f195, transparent);
+      border-radius: 50%;
+      animation: particle 3s ease-out forwards;
+    }
+
+    @keyframes particle {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx), var(--dy)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    /* FLOATING ELEMENTS */
+    .floating-element {
+      position: fixed;
+      pointer-events: none;
+      z-index: 50;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    /* GLOW EFFECTS */
+    .glow-pulse {
+      animation: glowPulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glowPulse {
+      from {
+        box-shadow: 0 0 20px rgba(20, 241, 149, 0.3),
+                    0 0 40px rgba(20, 241, 149, 0.2),
+                    0 0 60px rgba(20, 241, 149, 0.1);
+      }
+      to {
+        box-shadow: 0 0 30px rgba(20, 241, 149, 0.6),
+                    0 0 60px rgba(20, 241, 149, 0.4),
+                    0 0 90px rgba(20, 241, 149, 0.2);
+      }
+    }
+
+    /* MATRIX RAIN EFFECT */
+    .matrix-rain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.1;
+    }
+
+    .matrix-column {
+      position: absolute;
+      top: -100px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #14f195;
+      animation: matrixFall linear infinite;
+    }
+
+    @keyframes matrixFall {
+      to {
+        transform: translateY(100vh);
+      }
+    }
+
+    /* ENHANCED REVEAL ANIMATIONS */
+    .reveal {
+      opacity: 0;
+      transform: translateY(50px) scale(0.9);
+      transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-100px) rotate(-5deg);
+      transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .reveal-left.active {
+      opacity: 1;
+      transform: translateX(0) rotate(0deg);
+    }
+
+    .reveal-right {
+      opacity: 0;
+      transform: translateX(100px) rotate(5deg);
+      transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .reveal-right.active {
+      opacity: 1;
+      transform: translateX(0) rotate(0deg);
+    }
+
+    /* EPIC HOVER EFFECTS */
+    .epic-card {
+      position: relative;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+
+    .epic-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(20, 241, 149, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .epic-card:hover::before {
+      left: 100%;
+    }
+
+    .epic-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(20, 241, 149, 0.3);
+    }
+
+    /* TYPEWRITER EFFECT */
+    .typewriter {
+      overflow: hidden;
+      border-right: 3px solid #14f195;
+      white-space: nowrap;
+      animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes blink-caret {
+      from, to { border-color: transparent; }
+      50% { border-color: #14f195; }
+    }
+
+    /* SCREEN SHAKE ON SCROLL */
+    .screen-shake {
+      animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+      20%, 40%, 60%, 80% { transform: translateX(2px); }
+    }
+
+    /* Animated gradient background */
+    .animated-gradient {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(153,69,255,0.20), transparent 60%),
+                  radial-gradient(1000px 500px at 90% 20%, rgba(20,241,149,0.18), transparent 60%),
+                  radial-gradient(900px 500px at 40% 90%, rgba(0, 170, 255, 0.12), transparent 60%),
+                  linear-gradient(120deg, #0b0b10, #0a0a12 40%, #0c1014);
+      filter: saturate(1.1) contrast(1.02);
+      animation: floatGradient 22s ease-in-out infinite;
+      z-index: -2;
+    }
+    @keyframes floatGradient {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); }
+      50%      { transform: translate3d(0,-12px,0) scale(1.02); }
+    }
+
+    /* Subtle grain overlay */
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" opacity=\"0.06\" width=\"256\" height=\"256\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.85\" numOctaves=\"2\"/></filter><rect width=\"100%\" height=\"100%\" filter=\"url(%23n)\"/></svg>');
+      background-size: 256px 256px;
+      z-index: -1;
+    }
+
+    /* Reveal animations */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .8s ease, transform .8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* Dot navigation */
+    .dot {
+      width: 10px; height: 10px; border-radius: 9999px; background: rgba(255,255,255,.35);
+      transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .dot.active {
+      background: #14F195;
+      box-shadow: 0 0 0 6px rgba(20,241,149,.15), 0 0 18px rgba(20,241,149,.35);
+      transform: scale(1.1);
+    }
+    .dot:hover { background: rgba(255,255,255,.6); transform: scale(1.12); }
+
+    /* EPIC SECTION NAVIGATION */
+    .section-nav-group {
+      margin-bottom: 1rem;
+    }
+    
+    .section-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(20, 241, 149, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      padding-left: 4px;
+      border-left: 2px solid rgba(20, 241, 149, 0.3);
+      padding-left: 8px;
+    }
+    
+    .finale-dot {
+      background: linear-gradient(45deg, #9945FF, #14F195);
+      animation: finalePulse 2s ease-in-out infinite;
+      box-shadow: 0 0 20px rgba(20, 241, 149, 0.5);
+    }
+    
+    @keyframes finalePulse {
+      0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(20, 241, 149, 0.5);
+      }
+      50% { 
+        transform: scale(1.2);
+        box-shadow: 0 0 30px rgba(20, 241, 149, 0.8);
+      }
+    }
+
+    /* AUTO ALTERNATING LAYOUTS */
+    section:nth-child(even) .md\\:grid-cols-12 > div:first-child {
+      order: 2;
+    }
+    
+    section:nth-child(even) .md\\:grid-cols-12 > div:last-child {
+      order: 1;
+    }
+    
+    @media (max-width: 768px) {
+      section:nth-child(even) .md\\:grid-cols-12 > div:first-child,
+      section:nth-child(even) .md\\:grid-cols-12 > div:last-child {
+        order: unset;
+      }
+    }
+
+    /* Fullscreen sections with scroll snap */
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      height: 100%;
+    }
+    
+    body {
+      scroll-snap-type: y mandatory;
+      overflow-y: scroll;
+      height: 100vh;
+    }
+    
+    section { 
+      min-height: 100vh; 
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      position: relative;
+    }
+    
+    /* Улучшенный скролл для мобильных */
+    @media (max-width: 768px) {
+      html {
+        scroll-snap-type: y proximity;
+      }
+      body {
+        scroll-snap-type: y proximity;
+      }
+      section {
+        scroll-snap-align: start;
+        scroll-snap-stop: normal;
+      }
+    }
+  </style>
+</head>
+
+<body class="font-sans text-white antialiased selection:bg-solana-cyan/20 selection:text-white">
+  <!-- EPIC EFFECTS CONTAINERS -->
+  <div class="fireworks-container" id="fireworks"></div>
+  <div class="matrix-rain" id="matrix-rain"></div>
+  
+  <!-- Floating Elements -->
+  <div class="floating-element" style="top: 10%; left: 5%; font-size: 2rem; opacity: 0.3;">⚡</div>
+  <div class="floating-element" style="top: 20%; right: 10%; font-size: 1.5rem; opacity: 0.4; animation-delay: -2s;">🚀</div>
+  <div class="floating-element" style="top: 60%; left: 8%; font-size: 1.8rem; opacity: 0.3; animation-delay: -4s;">💎</div>
+  <div class="floating-element" style="bottom: 20%; right: 15%; font-size: 2.2rem; opacity: 0.4; animation-delay: -1s;">🌟</div>
+  <div class="floating-element" style="top: 40%; right: 5%; font-size: 1.6rem; opacity: 0.3; animation-delay: -3s;">🔥</div>
+  
+  <!-- Animated background layers -->
+  <div class="animated-gradient"></div>
+  <div class="grain"></div>
+
+  <!-- EPIC SECTION NAVIGATION -->
+  <nav class="fixed right-6 md:right-8 top-1/2 -translate-y-1/2 z-50">
+    <div class="space-y-6">
+      <!-- Overview Section -->
+      <div class="section-nav-group">
+        <div class="section-title">Overview</div>
+        <ul class="flex flex-col gap-2">
+          <li><a href="#screen-1" data-target="screen-1" class="dot block" aria-label="Проект"></a></li>
+          <li><a href="#screen-2" data-target="screen-2" class="dot block" aria-label="Технологии"></a></li>
+          <li><a href="#screen-3" data-target="screen-3" class="dot block" aria-label="Смарт-контракты"></a></li>
+    </ul>
+      </div>
+      
+      <!-- Wallet Section -->
+      <div class="section-nav-group">
+        <div class="section-title">Wallet</div>
+        <ul class="flex flex-col gap-2">
+          <li><a href="#screen-4" data-target="screen-4" class="dot block" aria-label="Главный экран"></a></li>
+          <li><a href="#screen-5" data-target="screen-5" class="dot block" aria-label="Кошелек"></a></li>
+          <li><a href="#screen-6" data-target="screen-6" class="dot block" aria-label="Отправка"></a></li>
+          <li><a href="#screen-7" data-target="screen-7" class="dot block" aria-label="Модал"></a></li>
+          <li><a href="#screen-8" data-target="screen-8" class="dot block" aria-label="История"></a></li>
+          <li><a href="#screen-9" data-target="screen-9" class="dot block" aria-label="Подтверждение"></a></li>
+          <li><a href="#screen-10" data-target="screen-10" class="dot block" aria-label="Успех"></a></li>
+        </ul>
+      </div>
+
+      <!-- NFT Section -->
+      <div class="section-nav-group">
+        <div class="section-title">NFT</div>
+        <ul class="flex flex-col gap-2">
+          <li><a href="#screen-11" data-target="screen-11" class="dot block" aria-label="Портфель"></a></li>
+          <li><a href="#screen-12" data-target="screen-12" class="dot block" aria-label="Коллекции"></a></li>
+          <li><a href="#screen-13" data-target="screen-13" class="dot block" aria-label="Маркетплейс"></a></li>
+          <li><a href="#screen-14" data-target="screen-14" class="dot block" aria-label="Создание"></a></li>
+        </ul>
+      </div>
+
+      <!-- DeFi Section -->
+      <div class="section-nav-group">
+        <div class="section-title">DeFi</div>
+        <ul class="flex flex-col gap-2">
+          <li><a href="#screen-15" data-target="screen-15" class="dot block" aria-label="SuperApp"></a></li>
+          <li><a href="#screen-16" data-target="screen-16" class="dot block" aria-label="Стейкинг"></a></li>
+          <li><a href="#screen-17" data-target="screen-17" class="dot block" aria-label="Займы"></a></li>
+          <li><a href="#screen-18" data-target="screen-18" class="dot block" aria-label="Фарминг"></a></li>
+          <li><a href="#screen-19" data-target="screen-19" class="dot block" aria-label="Аналитика"></a></li>
+          <li><a href="#screen-20" data-target="screen-20" class="dot block" aria-label="История"></a></li>
+          <li><a href="#screen-21" data-target="screen-21" class="dot block" aria-label="Портфель"></a></li>
+          <li><a href="#screen-22" data-target="screen-22" class="dot block" aria-label="Доходы"></a></li>
+          <li><a href="#screen-23" data-target="screen-23" class="dot block" aria-label="Мост"></a></li>
+          <li><a href="#screen-24" data-target="screen-24" class="dot block" aria-label="Риски"></a></li>
+          <li><a href="#screen-25" data-target="screen-25" class="dot block" aria-label="Страхование"></a></li>
+        </ul>
+      </div>
+
+      <!-- Learn Section -->
+      <div class="section-nav-group">
+        <div class="section-title">Learn</div>
+        <ul class="flex flex-col gap-2">
+          <li><a href="#screen-26" data-target="screen-26" class="dot block" aria-label="Learn to Earn"></a></li>
+          <li><a href="#screen-27" data-target="screen-27" class="dot block" aria-label="Создание курса"></a></li>
+          <li><a href="#screen-28" data-target="screen-28" class="dot block" aria-label="Видео урок"></a></li>
+        </ul>
+      </div>
+
+      <!-- Jobs Section -->
+      <div class="section-nav-group">
+        <div class="section-title">Jobs</div>
+        <ul class="flex flex-col gap-2">
+          <li><a href="#screen-29" data-target="screen-29" class="dot block" aria-label="Marketplace"></a></li>
+          <li><a href="#screen-30" data-target="screen-30" class="dot block" aria-label="Создание"></a></li>
+          <li><a href="#screen-31" data-target="screen-31" class="dot block" aria-label="Профиль"></a></li>
+          <li><a href="#screen-32" data-target="screen-32" class="dot block" aria-label="Достижения"></a></li>
+        </ul>
+      </div>
+
+      <!-- Finale -->
+      <div class="section-nav-group">
+        <div class="section-title">Finale</div>
+        <ul class="flex flex-col gap-2">
+          <li><a href="#screen-33" data-target="screen-33" class="dot block" aria-label="Результаты"></a></li>
+          <li><a href="#screen-34" data-target="screen-34" class="dot block finale-dot" aria-label="🚀 Тест бот"></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Screen 1 -->
+  <section id="screen-1" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-8 md:gap-10">
+      <div class="md:col-span-12 reveal">
+        <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 border border-white/10 bg-white/5 backdrop-blur-xl">
+          <span class="w-2 h-2 rounded-full bg-solana-cyan"></span>
+          <span class="text-xs tracking-wide text-white/80">Web3 • Solana Devnet</span>
+        </div>
+      </div>
+
+      <div class="md:col-span-12">
+        <h1 data-aos="zoom-in" data-aos-duration="1000" class="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight drop-shadow-glow glow-pulse typewriter">
+          Solana SuperApp
+        </h1>
+        <p data-aos="fade-up" data-aos-delay="500" class="mt-4 md:mt-6 text-lg md:text-xl text-white/80">
+          Web3 DeFi SuperApp на Solana: кошелек, DeFi, DAO, Learn‑to‑Earn и NFT — в одном интерфейсе.
+        </p>
+      </div>
+
+      <div class="md:col-span-12">
+        <div data-aos="fade-up" data-aos-delay="800" class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+          <div data-aos="flip-up" data-aos-delay="1000" class="epic-card rounded-xl px-4 py-3 text-center text-sm glow-pulse">⚡ Solana</div>
+          <div data-aos="flip-up" data-aos-delay="1100" class="epic-card rounded-xl px-4 py-3 text-center text-sm">🔗 Anchor</div>
+          <div data-aos="flip-up" data-aos-delay="1200" class="epic-card rounded-xl px-4 py-3 text-center text-sm">⚛️ Next.js</div>
+          <div data-aos="flip-up" data-aos-delay="1300" class="epic-card rounded-xl px-4 py-3 text-center text-sm">🎨 Tailwind</div>
+          <div data-aos="flip-up" data-aos-delay="1400" class="epic-card rounded-xl px-4 py-3 text-center text-sm">📱 Telegram</div>
+          <div data-aos="flip-up" data-aos-delay="1500" class="epic-card rounded-xl px-4 py-3 text-center text-sm">📋 Contracts</div>
+        </div>
+      </div>
+
+      <div class="md:col-span-12 reveal">
+        <div class="mt-10 rounded-2xl border border-white/10 bg-white/5/50 backdrop-blur-xl p-6 md:p-8">
+          <p class="text-white/80 leading-relaxed">
+            Один продукт, чтобы быстро начать в Solana: faucet, переводы по адресу и username, анонимные переводы, свопы и стейкинг, DAO‑голосование,
+            обучение с наградами (XP/токены) и NFT‑операции. Мобильный UX, модальные действия, плавные анимации и стеклянные карточки.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 2: Technology Stack -->
+  <section id="screen-2" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Right: Text (Alternating layout) -->
+      <div class="md:col-span-6 md:order-2 flex items-center">
+        <div class="space-y-6">
+          <h2 data-aos="fade-left" class="text-3xl md:text-5xl font-extrabold drop-shadow-glow">Технологии</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <p><strong>Современный tech stack</strong> с акцентом на производительность и безопасность.</p>
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-solana-cyan">🔗 Blockchain</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-flashlight-line text-solana-cyan mt-1"></i><span><b>Solana Devnet:</b> 65,000+ TPS blockchain</span></li>
+                <li class="flex items-start gap-3"><i class="ri-anchor-line text-solana-cyan mt-1"></i><span><b>Anchor Framework:</b> Rust-based смарт-контракты</span></li>
+                <li class="flex items-start gap-3"><i class="ri-coin-line text-solana-cyan mt-1"></i><span><b>SPL Tokens:</b> TNG и sTNG токены</span></li>
+              </ul>
+              <h3 class="text-lg font-semibold text-solana-cyan">⚛️ Frontend</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-reactjs-line text-solana-cyan mt-1"></i><span><b>Next.js 14:</b> App Router, Server Components</span></li>
+                <li class="flex items-start gap-3"><i class="ri-palette-line text-solana-cyan mt-1"></i><span><b>TailwindCSS:</b> Utility-first styling</span></li>
+                <li class="flex items-start gap-3"><i class="ri-smartphone-line text-solana-cyan mt-1"></i><span><b>Telegram WebApp:</b> Mobile-first UX</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Left: Diagram (Alternating layout) -->
+      <div class="md:col-span-6 md:order-1 flex justify-center">
+        <div data-aos="fade-right" class="relative w-full max-w-[500px]">
+          <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
+            <h3 class="text-center text-lg font-semibold text-white mb-6">Архитектура</h3>
+            <div class="rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-4 border border-white/10">
+              <div class="text-center text-sm font-semibold text-white mb-2">Frontend</div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-white/10 rounded px-2 py-1 text-center">Next.js</div>
+                <div class="bg-white/10 rounded px-2 py-1 text-center">Telegram</div>
+              </div>
+            </div>
+            <div class="rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-4 border border-white/10">
+              <div class="text-center text-sm font-semibold text-white mb-2">Blockchain</div>
+              <div class="bg-white/10 rounded px-2 py-1 text-center text-xs">Solana + Anchor</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 3: Smart Contracts -->
+  <section id="screen-3" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 data-aos="fade-right" class="text-3xl md:text-5xl font-extrabold drop-shadow-glow">Smart Contracts</h2>
+          <div data-aos="fade-right" data-aos-delay="200" class="space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <p><strong>8+ активных смарт-контрактов</strong> на Solana Devnet с реальными операциями.</p>
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-solana-cyan">🪙 Core Contracts</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-coin-line text-green-400 mt-1"></i><span><b>TNG Faucet:</b> Минт токенов с rate limiting</span></li>
+                <li class="flex items-start gap-3"><i class="ri-safe-line text-green-400 mt-1"></i><span><b>Staking:</b> Liquid staking с sTNG токенами</span></li>
+                <li class="flex items-start gap-3"><i class="ri-exchange-line text-green-400 mt-1"></i><span><b>DEX:</b> Swap через Jupiter интеграцию</span></li>
+              </ul>
+              <h3 class="text-lg font-semibold text-solana-cyan">🏛️ DAO & Governance</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-government-line text-blue-400 mt-1"></i><span><b>Voting:</b> On-chain голосование</span></li>
+                <li class="flex items-start gap-3"><i class="ri-file-text-line text-blue-400 mt-1"></i><span><b>Proposals:</b> Создание предложений</span></li>
+              </ul>
+              <h3 class="text-lg font-semibold text-solana-cyan">💼 DeFi Ecosystem</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-bank-line text-orange-400 mt-1"></i><span><b>Lending:</b> Кредитование с Health Factor</span></li>
+                <li class="flex items-start gap-3"><i class="ri-flashlight-line text-orange-400 mt-1"></i><span><b>Flash Loans:</b> Атомарные займы</span></li>
+                <li class="flex items-start gap-3"><i class="ri-briefcase-line text-orange-400 mt-1"></i><span><b>Jobs Escrow:</b> Безопасные выплаты</span></li>
+          </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="md:col-span-6 flex justify-center">
+        <div data-aos="fade-left" data-aos-delay="400" class="relative w-full max-w-[500px]">
+          <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+            <h3 class="text-center text-lg font-semibold text-white mb-6">Deployed Contracts</h3>
+            <div class="space-y-3">
+              <div class="rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 p-3 border border-white/10">
+                <div class="text-sm font-semibold text-white mb-2">Core (5)</div>
+                <div class="text-xs space-y-1">
+                  <div class="flex justify-between">
+                    <span>TNG Faucet</span>
+                    <span class="text-green-400">✓</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Staking</span>
+                    <span class="text-green-400">✓</span>
+                  </div>
+                </div>
+              </div>
+              <div class="rounded-xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 p-3 border border-white/10">
+                <div class="text-sm font-semibold text-white mb-2">DAO (3)</div>
+                <div class="text-xs space-y-1">
+                  <div class="flex justify-between">
+                    <span>Governance</span>
+                    <span class="text-green-400">✓</span>
+                  </div>
+                </div>
+              </div>
+              <div class="rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-3 border border-white/10">
+                <div class="text-sm font-semibold text-white mb-2">DeFi (7)</div>
+                <div class="text-xs space-y-1">
+                  <div class="flex justify-between">
+                    <span>Lending + Flash Loans</span>
+                    <span class="text-green-400">✓</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/10">
+              <div class="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div class="text-lg font-bold text-solana-cyan">8+</div>
+                  <div class="text-xs text-white/70">Контрактов</div>
+                </div>
+                <div>
+                  <div class="text-lg font-bold text-green-400">100%</div>
+                  <div class="text-xs text-white/70">Активных</div>
+                </div>
+                <div>
+                  <div class="text-lg font-bold text-purple-400">0</div>
+                  <div class="text-xs text-white/70">Ошибок</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 4 -->
+  <section id="screen-4" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Right: Text (Alternating layout) -->
+      <div class="md:col-span-6 md:order-2 flex items-center">
+        <div class="space-y-6">
+          <h2 data-aos="fade-left" class="text-3xl md:text-5xl font-extrabold drop-shadow-glow">Главный экран</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-wallet-3-line text-solana-cyan mt-1"></i><span><b>Портфель пользователя</b>: отображение общей стоимости активов в USD и количества токенов с автообновлением.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-layout-grid-line text-solana-cyan mt-1"></i><span><b>Модульная архитектура</b>: блоки «Кошелек» (SOL + токены) и «NFT» (коллекции) для быстрого доступа к активам.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-service-line text-solana-cyan mt-1"></i><span><b>Центр сервисов</b>: единая точка входа в DAO, обучение, работу и DeFi с визуальной навигацией.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-drop-fill text-solana-cyan mt-1"></i><span><b>Onboarding через Faucet</b>: получение тестовых токенов для знакомства с платформой без барьеров.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-navigation-line text-solana-cyan mt-1"></i><span><b>Мобильная навигация</b>: нижняя панель с доступом ко всем разделам приложения одним касанием.</span></li>
+            </ul>
+
+            <div class="grid sm:grid-cols-2 gap-3 text-sm text-white/80">
+              <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3">Telegram WebApp интеграция</div>
+              <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3">Автоматическое создание кошелька</div>
+              <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3">Реальное время обновления</div>
+              <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3">Единая точка входа</div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">On-Chain архитектура</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-coins-line text-solana-cyan mt-0.5"></i>
+                  <div><b>TNG Token Faucet:</b> Реальный минт токенов через Anchor программу в devnet. Sponsor-кошелёк оплачивает комиссии, пользователь получает токены на custodial адрес с rate limiting (10 мин).</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-wallet-line text-solana-purple mt-0.5"></i>
+                  <div><b>Custodial Wallet:</b> Автогенерация keypair при первом входе, хранение в зашифрованном виде. Sponsor Service покрывает fees для onboarding операций.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-exchange-line text-blue-400 mt-0.5"></i>
+                  <div><b>Smart Contracts:</b> Развёрнутые программы для staking (с sTNG квитанциями), swap (агрегированные пулы) и DAO (on-chain голосование с реальным влиянием на параметры).</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-database-line text-green-400 mt-0.5"></i>
+                  <div><b>Hybrid Storage:</b> Критичные операции on-chain, UI состояния в PostgreSQL с Prisma, кеширование балансов для быстрого отображения.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Decorative architecture diagram -->
+            <div class="flex items-center gap-6">
+              <div class="relative w-28 h-28">
+                <svg viewBox="0 0 36 36" class="w-28 h-28">
+                  <rect x="4" y="4" width="28" height="8" rx="2" fill="rgba(153,69,255,0.2)" stroke="rgba(153,69,255,0.4)"></rect>
+                  <rect x="4" y="14" width="13" height="8" rx="2" fill="rgba(20,241,149,0.2)" stroke="rgba(20,241,149,0.4)"></rect>
+                  <rect x="19" y="14" width="13" height="8" rx="2" fill="rgba(75,181,255,0.2)" stroke="rgba(75,181,255,0.4)"></rect>
+                  <rect x="4" y="24" width="28" height="4" rx="2" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)"></rect>
+                  <rect x="4" y="30" width="28" height="2" rx="1" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)"></rect>
+                </svg>
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="rounded-lg border border-white/10 bg-white/5 backdrop-blur-xl px-3 py-2"><div class="text-white/70">Portfolio</div><div class="text-white">USD</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 backdrop-blur-xl px-3 py-2"><div class="text-white/70">Tokens</div><div class="text-white">Multi</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 backdrop-blur-xl px-3 py-2"><div class="text-white/70">Wallet</div><div class="text-white">Auto</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 backdrop-blur-xl px-3 py-2"><div class="text-white/70">NFT</div><div class="text-white">Ready</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot placeholder -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_1.png" alt="Главный экран — баланс, быстрые действия и faucet" class="w-full h-full object-cover" />
+            </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(20,241,149,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 3: Wallet Page -->
+  <section id="screen-3" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Страница Кошелька</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-pie-chart-line text-solana-cyan mt-1"></i><span><b>Детальный баланс</b>: разбивка по токенам SOL, TNG, USDC с USD эквивалентом и процентными долями портфеля.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-send-plane-line text-solana-cyan mt-1"></i><span><b>Быстрые действия</b>: четыре кнопки — Отправить, Получить, Сканер QR, История транзакций.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-key-line text-solana-cyan mt-1"></i><span><b>Управление кошельками</b>: переключение между встроенным (custodial) и внешним кошельком одним тапом.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-flashlight-line text-solana-cyan mt-1"></i><span><b>Фосет интеграция</b>: быстрое получение тестовых токенов с визуальной индикацией и управлением.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Wallet Architecture</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-check-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Custodial Security:</b> Зашифрованное хранение приватных ключей, автоматическая генерация при регистрации, sponsor-покрытие fees.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-refresh-line text-solana-purple mt-0.5"></i>
+                  <div><b>Real-time Updates:</b> Кеширование балансов с автообновлением, оптимизированные RPC вызовы, мгновенное отображение изменений.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_2.png" alt="Страница кошелька — детальный баланс и быстрые действия" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 4: Send Modal (Current Image) -->
+  <section id="screen-4" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Отправка токенов</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-exchange-dollar-line text-solana-cyan mt-1"></i><span><b>Выбор токена</b>: переключение между SOL (0.00 доступно) и TNG (1000 доступно) с real-time балансами.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-user-search-line text-solana-cyan mt-1"></i><span><b>Гибкий получатель</b>: вкладки «Адрес» и «@Username» для отправки по Solana адресу или поиску пользователей.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-spy-line text-solana-cyan mt-1"></i><span><b>Анонимные переводы</b>: чекбокс «Отправить анонимно» скрывает отправителя в истории получателя.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-message-line text-solana-cyan mt-1"></i><span><b>Memo поле</b>: необязательный комментарий к транзакции для описания цели перевода.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-qr-code-line text-solana-cyan mt-1"></i><span><b>QR сканер</b>: кнопка справа от поля адреса для автозаполнения через камеру.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Smart Contract Integration</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-check-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Pre-validation:</b> Проверка баланса, формата адреса и лимитов перед отправкой транзакции в блокчейн.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-user-search-line text-solana-purple mt-0.5"></i>
+                  <div><b>Username Resolution:</b> API поиск пользователей по username с проверкой регистрации и получением wallet адреса.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_3.png" alt="Отправка токенов — выбор токена, получателя, анонимность и memo" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 5: Send Modal (Screenshot 5) -->
+  <section id="screen-5" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Модальное окно отправки</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-exchange-dollar-line text-solana-cyan mt-1"></i><span><b>Выбор токена</b>: переключение между SOL и TNG с отображением доступного баланса в реальном времени.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-user-search-line text-solana-cyan mt-1"></i><span><b>Гибкий получатель</b>: отправка по Solana адресу или по username с автопоиском пользователей.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-spy-line text-solana-cyan mt-1"></i><span><b>Анонимные переводы</b>: опция скрыть отправителя в истории транзакций получателя.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-message-line text-solana-cyan mt-1"></i><span><b>Комментарии</b>: необязательное поле memo для описания перевода.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-qr-code-line text-solana-cyan mt-1"></i><span><b>QR интеграция</b>: кнопка сканирования для автозаполнения адреса получателя.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Transfer Flow</div>
+              <div class="grid gap-2 text-sm text-white/85">
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">1</span><span>Выбор токена и суммы</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">2</span><span>Указание получателя (адрес/username)</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">3</span><span>Опциональные настройки (анонимность, memo)</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">4</span><span>Подтверждение и отправка on-chain</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_5.png" alt="Модальное окно отправки — выбор токена, получателя и настроек" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 6: Transaction History -->
+  <section id="screen-6" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">История транзакций</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-search-line text-solana-cyan mt-1"></i><span><b>Умный поиск</b>: фильтрация по типу операций, токенам, статусу и временному периоду.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-filter-3-line text-solana-cyan mt-1"></i><span><b>Категоризация</b>: разделение на Все, Получено, Отправлено, Обмены, DeFi операции.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-external-link-line text-solana-cyan mt-1"></i><span><b>Blockchain Explorer</b>: прямые ссылки на Solana Explorer для on-chain транзакций с индикацией статуса.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-time-line text-solana-cyan mt-1"></i><span><b>Real-time статусы</b>: pending, confirmed, failed с автообновлением и визуальной индикацией.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Transaction Types</div>
+              <div class="grid md:grid-cols-2 gap-3 text-sm text-white/85">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-400"></span><span>Faucet (On-Chain)</span></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-400"></span><span>P2P Transfers</span></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-400"></span><span>DeFi Operations</span></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-400"></span><span>NFT Transactions</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_4.png" alt="История транзакций — фильтры, поиск и blockchain explorer ссылки" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 7: Transaction Confirmation -->
+  <section id="screen-7" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Подтверждение транзакции</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-shield-check-line text-solana-cyan mt-1"></i><span><b>Детали операции</b>: полная информация о сумме, получателе, комиссии и сети перед отправкой.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-progress-3-line text-solana-cyan mt-1"></i><span><b>Пошаговый индикатор</b>: визуальное отображение этапов обработки транзакции.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-secure-payment-line text-solana-cyan mt-1"></i><span><b>Sponsor комиссии</b>: система покрывает network fees для улучшения UX новых пользователей.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-fingerprint-line text-solana-cyan mt-1"></i><span><b>Безопасность</b>: подтверждение через Solana keypair с предварительной симуляцией транзакции.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Transaction Pipeline</div>
+              <div class="grid gap-2 text-sm text-white/85">
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan flex items-center justify-center text-xs">✓</span><span>Валидация параметров</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan flex items-center justify-center text-xs">✓</span><span>Симуляция транзакции</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-xs">⏳</span><span>Подпись и отправка</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-xs">○</span><span>Подтверждение блокчейном</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_6.png" alt="Подтверждение транзакции — детали операции и пошаговый индикатор" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 8: Success Screen -->
+  <section id="screen-8" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Успешная транзакция</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-checkbox-circle-line text-solana-cyan mt-1"></i><span><b>Подтверждение успеха</b>: визуальная индикация успешной отправки с анимацией и haptic feedback.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-external-link-line text-solana-cyan mt-1"></i><span><b>Blockchain Explorer</b>: прямая ссылка «Посмотреть в блокчейне» для верификации транзакции.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-file-copy-line text-solana-cyan mt-1"></i><span><b>Подпись транзакции</b>: полный transaction hash с возможностью копирования для дальнейшего отслеживания.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-refresh-line text-solana-cyan mt-1"></i><span><b>Автообновление</b>: балансы обновляются автоматически после подтверждения, история пополняется новой записью.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Post-Transaction Flow</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-database-2-line text-green-400 mt-0.5"></i>
+                  <div><b>State Updates:</b> Обновление кешированных балансов, добавление записи в историю, обновление UI компонентов.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-notification-line text-blue-400 mt-0.5"></i>
+                  <div><b>User Feedback:</b> Haptic feedback, push уведомления (если настроены), email подтверждения для крупных сумм.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_7.png" alt="Успешная транзакция — подтверждение, explorer ссылка и transaction hash" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(20,241,149,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 9: NFT Portfolio -->
+  <section id="screen-9" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">NFT Портфель</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-gallery-line text-solana-cyan mt-1"></i><span><b>Навигация по типам</b>: четыре вкладки — Мои NFT, Маркетплейс, Коллекции, Создать для управления цифровыми активами.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-pie-chart-line text-solana-cyan mt-1"></i><span><b>Портфель активов</b>: общая стоимость 1 NFT = $1.85 (+1.6%) с разбивкой по токенам SOL/TNG.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-price-tag-3-line text-solana-cyan mt-1"></i><span><b>Категоризация NFT</b>: разделение по типам — Билеты (1), Купоны (0), Значки (0), Коллекционные (0).</span></li>
+              <li class="flex items-start gap-3"><i class="ri-bar-chart-line text-solana-cyan mt-1"></i><span><b>Быстрые действия</b>: Получить, Статистика, Поделиться, Сканер для управления NFT активами.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">NFT On-Chain Architecture</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-palette-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Metaplex Integration:</b> Использование Metaplex Foundation JS SDK для минта, transfer и metadata управления NFT в Solana devnet.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-cloud-line text-solana-purple mt-0.5"></i>
+                  <div><b>Arweave Storage:</b> Метаданные и изображения загружаются в Arweave через Irys для постоянного хранения с sponsor-покрытием fees.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-database-line text-blue-400 mt-0.5"></i>
+                  <div><b>Hybrid Indexing:</b> On-chain данные синхронизируются с PostgreSQL для быстрого поиска и фильтрации по типам NFT.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_8.png" alt="NFT Портфель — навигация, стоимость активов и категоризация" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 10: NFT Collections -->
+  <section id="screen-10" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">NFT Коллекции</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-stack-line text-solana-cyan mt-1"></i><span><b>Коллекции проектов</b>: «Казак Ханы» (777 NFT, 12.50 SOL floor) и «Байтерек NFT» (2.0k NFT, 18.50 SOL floor).</span></li>
+              <li class="flex items-start gap-3"><i class="ri-funds-line text-solana-cyan mt-1"></i><span><b>Рыночные метрики</b>: общий объём торгов, floor price, активность торговли и процентные изменения.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-heart-line text-solana-cyan mt-1"></i><span><b>Социальные показатели</b>: количество просмотров (25.4k) и лайков (1.9k) для оценки популярности коллекций.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-trending-down-line text-solana-cyan mt-1"></i><span><b>Динамика цен</b>: отслеживание изменений floor price (-6.2%) для анализа рыночных трендов.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Collection Smart Contracts</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-group-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Collection Verification:</b> Metaplex Certified Collections с on-chain верификацией через collection authority и размером коллекции.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-money-dollar-circle-line text-solana-purple mt-0.5"></i>
+                  <div><b>Royalty System:</b> Автоматическое распределение роялти создателям через Metaplex Creator Royalties (обычно 5-10%).</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-bar-chart-box-line text-green-400 mt-0.5"></i>
+                  <div><b>Market Analytics:</b> Агрегация данных о продажах, floor price calculation и volume tracking через Jupiter/Serum DEX интеграцию.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_10.png" alt="NFT Коллекции — рыночные метрики, floor price и социальные показатели" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 11: NFT Marketplace -->
+  <section id="screen-11" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">NFT Маркетплейс</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-search-line text-solana-cyan mt-1"></i><span><b>Умный поиск</b>: поиск по названию или описанию NFT с автозаполнением и фильтрацией результатов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-filter-3-line text-solana-cyan mt-1"></i><span><b>Система фильтров</b>: категории, дата создания, ценовые диапазоны и переключение между grid/list view.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-price-tag-line text-solana-cyan mt-1"></i><span><b>Листинги NFT</b>: отображение доступных для покупки токенов с ценами в SOL и статусом «Продается».</span></li>
+              <li class="flex items-start gap-3"><i class="ri-layout-grid-line text-solana-cyan mt-1"></i><span><b>Адаптивная сетка</b>: переключение между карточным и списочным отображением для удобства просмотра.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Marketplace Infrastructure</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-exchange-box-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Escrow System:</b> Безопасные сделки через Program Derived Addresses (PDA) с автоматическим эскроу до подтверждения покупки.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-search-eye-line text-solana-purple mt-0.5"></i>
+                  <div><b>Indexing Engine:</b> Полнотекстовый поиск через PostgreSQL с индексацией метаданных и real-time синхронизацией с blockchain.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-price-tag-3-line text-orange-400 mt-0.5"></i>
+                  <div><b>Dynamic Pricing:</b> Интеграция с Jupiter для конвертации SOL/USD и автоматическое обновление floor prices коллекций.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_9.png" alt="NFT Маркетплейс — поиск, фильтры и листинги для покупки" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 12: NFT Creation -->
+  <section id="screen-12" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Создание NFT</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-image-add-line text-solana-cyan mt-1"></i><span><b>Загрузка изображения</b>: drag & drop зона с поддержкой выбора файла или съёмки через камеру устройства.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-edit-box-line text-solana-cyan mt-1"></i><span><b>Метаданные NFT</b>: поля для названия, описания и дополнительных атрибутов с валидацией формата.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-price-tag-2-line text-solana-cyan mt-1"></i><span><b>Настройки минта</b>: выбор коллекции, установка роялти, количество копий и права на изменение.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-secure-payment-line text-solana-cyan mt-1"></i><span><b>Sponsor покрытие</b>: система оплачивает комиссии за минт и загрузку в Arweave для новых пользователей.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">NFT Minting Pipeline</div>
+              <div class="grid gap-2 text-sm text-white/85">
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">1</span><span>Загрузка изображения в Arweave через Irys</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">2</span><span>Создание JSON метаданных с attributes</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">3</span><span>Загрузка метаданных в Arweave</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">4</span><span>Минт NFT через Metaplex с URI ссылкой</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">5</span><span>Сохранение в PostgreSQL для индексации</span></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Technical Implementation</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-cloud-upload-line text-green-400 mt-0.5"></i>
+                  <div><b>Irys Integration:</b> Устойчивая загрузка с retry логикой, проверка баланса sponsor'а и обработка 400 ошибок от Arweave.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-fingerprint-line text-blue-400 mt-0.5"></i>
+                  <div><b>Metaplex SDK:</b> Использование @metaplex-foundation/js с keypairIdentity для sponsor'а и автоматическим созданием ATA.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_11.png" alt="Создание NFT — загрузка изображения, метаданные и настройки минта" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(20,241,149,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 13: DeFi SuperApp -->
+  <section id="screen-13" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">DeFi SuperApp</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-pie-chart-line text-solana-cyan mt-1"></i><span><b>DeFi Статистика</b>: централизованная панель для мониторинга всех DeFi позиций с отслеживанием роста портфеля.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-exchange-line text-solana-cyan mt-1"></i><span><b>Агрегация доходности</b>: автоматический расчёт средней доходности по всем DeFi протоколам и позициям.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-medal-line text-solana-cyan mt-1"></i><span><b>Профиль риска</b>: автоматическая оценка уровня риска пользователя на основе истории операций и портфеля.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-flashlight-line text-solana-cyan mt-1"></i><span><b>Быстрые действия</b>: Стейк, Обмен, Фарм, Займ для мгновенного доступа к DeFi операциям.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">DeFi Protocol Architecture</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-stack-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Multi-Protocol Hub:</b> Интеграция с Jupiter для свапов, собственные Anchor программы для стейкинга и кредитования.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-check-line text-green-400 mt-0.5"></i>
+                  <div><b>Risk Management:</b> Автоматическая оценка рисков позиций, health factor мониторинг и ликвидационные пороги.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-line-chart-line text-blue-400 mt-0.5"></i>
+                  <div><b>Yield Optimization:</b> Автоматическое перебалансирование портфеля для максимизации APY через различные протоколы.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_12.png" alt="DeFi SuperApp — портфель, статистика и быстрые действия" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(20,241,149,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 14: TNG Staking -->
+  <section id="screen-14" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">TNG Стейкинг</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-coin-line text-solana-cyan mt-1"></i><span><b>Управление позициями</b>: отслеживание застейканных токенов с автоматическим начислением наград и отображением доступного баланса.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-percent-line text-solana-cyan mt-1"></i><span><b>Доходность стейкинга</b>: real-time расчёт APY с автоматическим начислением наград в sTNG receipt токенах.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-time-line text-solana-cyan mt-1"></i><span><b>Мульти-пул система</b>: управление несколькими пулами стейкинга с sponsor-покрытием комиссий для новых пользователей.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-lightning-line text-solana-cyan mt-1"></i><span><b>Быстрые действия</b>: предустановленные суммы для мгновенного стейкинга без ручного ввода значений.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Staking Smart Contract</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-safe-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Anchor Program:</b> Собственный смарт-контракт стейкинга с автоматическим минтом sTNG receipt токенов как подтверждение позиции.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-refresh-line text-green-400 mt-0.5"></i>
+                  <div><b>Compound Rewards:</b> Автоматическое реинвестирование наград каждые 24 часа для максимизации доходности.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-exchange-box-line text-blue-400 mt-0.5"></i>
+                  <div><b>Liquid Staking:</b> sTNG токены можно использовать в других DeFi протоколах без анстейкинга основной позиции.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_13.png" alt="TNG Стейкинг — портфель, APY и быстрые действия" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 15: DeFi Loans -->
+  <section id="screen-15" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">DeFi Займы</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-wallet-3-line text-solana-cyan mt-1"></i><span><b>Управление позициями</b>: мониторинг предоставленных и заимствованных средств с автоматическим расчётом Health Factor.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-percent-line text-solana-cyan mt-1"></i><span><b>Динамические ставки</b>: автоматическое обновление процентных ставок на основе утилизации пулов и рыночного спроса.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-flashlight-line text-solana-cyan mt-1"></i><span><b>Flash Loans</b>: атомарные займы без залога для арбитража, ликвидаций и сложных DeFi стратегий.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-exchange-line text-solana-cyan mt-1"></i><span><b>Мульти-токен рынки</b>: поддержка различных токенов с индивидуальными параметрами кредитования и залогового обеспечения.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Lending Protocol Architecture</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-safe-2-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Collateral Management:</b> Автоматический расчёт Health Factor, мониторинг залогового обеспечения и предупреждения о ликвидации.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-lightning-line text-orange-400 mt-0.5"></i>
+                  <div><b>Flash Loan Engine:</b> Anchor программа для атомарных займов с автоматическим возвратом в рамках одной транзакции.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-line-chart-line text-green-400 mt-0.5"></i>
+                  <div><b>Interest Rate Model:</b> Динамическое изменение ставок на основе утилизации пулов и рыночного спроса.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_14.png" alt="DeFi Займы — позиции, Health Factor и Flash Loans" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(255,193,7,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 16: DeFi Farming -->
+  <section id="screen-16" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Yield Farming</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-plant-line text-solana-cyan mt-1"></i><span><b>Фарминг пулы</b>: предоставление ликвидности в различные пары токенов для получения торговых комиссий и дополнительных наград.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-money-dollar-circle-line text-solana-cyan mt-1"></i><span><b>LP токены</b>: получение LP токенов как подтверждение доли в пуле ликвидности с правом на комиссии.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-percent-line text-solana-cyan mt-1"></i><span><b>Доходность</b>: автоматический расчёт APY на основе объёма торгов и размера пула ликвидности.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-refresh-line text-solana-cyan mt-1"></i><span><b>Авто-компаундинг</b>: реинвестирование заработанных комиссий для увеличения позиции в пуле.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Liquidity Pool Architecture</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-water-percent-line text-solana-cyan mt-0.5"></i>
+                  <div><b>AMM Integration:</b> Интеграция с Jupiter и Raydium для создания и управления пулами ликвидности с оптимальным ценообразованием.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-star-line text-green-400 mt-0.5"></i>
+                  <div><b>Impermanent Loss Protection:</b> Алгоритмы для минимизации временных потерь через диверсификацию и хеджирование.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-loop-right-line text-blue-400 mt-0.5"></i>
+                  <div><b>Auto-Compound Engine:</b> Автоматическое реинвестирование наград каждые 6 часов для максимизации compound эффекта.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_15.png" alt="Yield Farming — пулы ликвидности и авто-компаундинг" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(34,197,94,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 17: DeFi Analytics -->
+  <section id="screen-17" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">DeFi Аналитика</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-bar-chart-box-line text-solana-cyan mt-1"></i><span><b>Портфель аналитика</b>: детальная разбивка активов по протоколам, доходности и рискам с историческими данными.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-line-chart-line text-solana-cyan mt-1"></i><span><b>Performance tracking</b>: отслеживание P&L, APY по времени, сравнение с рыночными индексами.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-pie-chart-line text-solana-cyan mt-1"></i><span><b>Диверсификация</b>: анализ распределения активов по протоколам, токенам и стратегиям доходности.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-alert-line text-solana-cyan mt-1"></i><span><b>Risk metrics</b>: мониторинг Health Factor, ликвидационных рисков и корреляции активов.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Analytics Infrastructure</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-database-2-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Data Aggregation:</b> Real-time сбор данных с blockchain через RPC, Jupiter API и собственных смарт-контрактов.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-calculator-line text-green-400 mt-0.5"></i>
+                  <div><b>Yield Calculation:</b> Точный расчёт APY с учётом compound эффекта, комиссий протоколов и impermanent loss.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-notification-3-line text-orange-400 mt-0.5"></i>
+                  <div><b>Alert System:</b> Автоматические уведомления о изменениях позиций, рисках ликвидации и возможностях арбитража.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Advanced Features</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-robot-line text-purple-400 mt-0.5"></i>
+                  <div><b>Strategy Optimization:</b> AI-powered рекомендации по ребалансировке портфеля для максимизации risk-adjusted returns.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-git-compare-line text-blue-400 mt-0.5"></i>
+                  <div><b>Protocol Comparison:</b> Сравнение доходности и рисков между различными DeFi протоколами в реальном времени.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_16.png" alt="DeFi Аналитика — портфель, performance и risk metrics" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(139,92,246,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 18: DeFi Transaction History -->
+  <section id="screen-18" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">История DeFi</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-history-line text-solana-cyan mt-1"></i><span><b>Полная история DeFi</b>: отслеживание всех операций с автоматической категоризацией и расчётом общих объёмов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-search-line text-solana-cyan mt-1"></i><span><b>Интеллектуальный поиск</b>: поиск транзакций по подписи, протоколу, токену с автозаполнением и фильтрацией.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-filter-3-line text-solana-cyan mt-1"></i><span><b>Категоризация операций</b>: автоматическое разделение по типам (Стейкинг, Обмены, Фарминг) с динамическими счётчиками.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-external-link-line text-solana-cyan mt-1"></i><span><b>Blockchain Explorer</b>: прямые ссылки на Solana Explorer для каждой транзакции с подробными деталями.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">On-Chain Transaction Tracking</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-database-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Full Blockchain Indexing:</b> Индексация всех on-chain операций через RPC с сохранением signatures, accounts и instruction data.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-search-eye-line text-green-400 mt-0.5"></i>
+                  <div><b>Explorer Integration:</b> Автоматическое создание ссылок на Solana Explorer, SolScan для детального просмотра транзакций.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-refresh-line text-blue-400 mt-0.5"></i>
+                  <div><b>Real-time Updates:</b> WebSocket подключения для мгновенного обновления статуса транзакций и подтверждений.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_17.png" alt="История DeFi — все операции с фильтрами и Explorer ссылками" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(59,130,246,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 19: TNG Portfolio -->
+  <section id="screen-19" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">TNG Портфель</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-pie-chart-line text-solana-cyan mt-1"></i><span><b>Комплексная аналитика</b>: агрегация всех активов с автоматическим расчётом общей стоимости, роста и средней доходности.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-bar-chart-line text-solana-cyan mt-1"></i><span><b>Ранжирование активов</b>: автоматическое определение наиболее и наименее доходных активов с расчётом APY.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-donut-chart-line text-solana-cyan mt-1"></i><span><b>Диверсификация портфеля</b>: визуализация распределения активов по токенам и протоколам для оценки рисков.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-coins-line text-solana-cyan mt-1"></i><span><b>Управление активами</b>: детальная информация по каждому активу с сортировкой по различным метрикам.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Portfolio Analytics Engine</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-calculator-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Real-time Valuation:</b> Автоматический расчёт стоимости портфеля через Jupiter API с учётом текущих цен токенов.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-line-chart-line text-green-400 mt-0.5"></i>
+                  <div><b>Performance Tracking:</b> Отслеживание P&L по времени, сравнение с бенчмарками, расчёт Sharpe ratio.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-pie-chart-2-line text-blue-400 mt-0.5"></i>
+                  <div><b>Asset Allocation:</b> Анализ диверсификации портфеля, рекомендации по ребалансировке на основе корреляций.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_18.png" alt="TNG Портфель — активы, доходность и распределение" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(168,85,247,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 20: Yield Farming Advanced -->
+  <section id="screen-20" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Yield Фарминг</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-plant-line text-solana-cyan mt-1"></i><span><b>Мульти-стратегии</b>: управление несколькими стратегиями доходности с автоматической оптимизацией и переключением.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-line-chart-line text-solana-cyan mt-1"></i><span><b>Временная аналитика</b>: отслеживание доходности портфеля по различным временным периодам для оценки трендов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-money-dollar-circle-line text-solana-cyan mt-1"></i><span><b>Оптимизация стратегий</b>: автоматическое определение и выделение наиболее доходных стратегий с реинвестированием.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-bar-chart-box-line text-solana-cyan mt-1"></i><span><b>Трендовый анализ</b>: визуализация динамики доходности с прогнозированием и выявлением паттернов.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Advanced Farming Strategies</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-loop-right-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Auto-Compound Engine:</b> Автоматическое реинвестирование наград каждые 4-6 часов для максимизации compound эффекта.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-star-line text-green-400 mt-0.5"></i>
+                  <div><b>Impermanent Loss Mitigation:</b> Алгоритмы для минимизации IL через диверсификацию и хеджирование позиций.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-robot-line text-purple-400 mt-0.5"></i>
+                  <div><b>Strategy Optimization:</b> ML-алгоритмы для автоматического переключения между стратегиями на основе рыночных условий.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_19.png" alt="Yield Фарминг — стратегии, доходность и динамика" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(34,197,94,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 21: Cross-Chain Bridge -->
+  <section id="screen-21" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Cross-Chain Bridge</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-bridge-line text-solana-cyan mt-1"></i><span><b>Межсетевые переводы</b>: безопасные, быстрые, Multi-Chain переводы между Ethereum и Solana.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-exchange-line text-solana-cyan mt-1"></i><span><b>Выбор сетей</b>: Откуда/Куда Ethereum с автоматическим определением лучших маршрутов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-coin-line text-solana-cyan mt-1"></i><span><b>Поддержка токенов</b>: TNG и другие популярные токены с автоматической конвертацией курсов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-history-line text-solana-cyan mt-1"></i><span><b>История переводов</b>: отслеживание всех cross-chain операций с статусами и подтверждениями.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Bridge Infrastructure</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-links-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Wormhole Integration:</b> Использование Wormhole bridge для безопасных переводов между Solana и Ethereum.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-check-line text-green-400 mt-0.5"></i>
+                  <div><b>Multi-Sig Security:</b> Многоподписные валидаторы и время блокировки для максимальной безопасности средств.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-speed-line text-orange-400 mt-0.5"></i>
+                  <div><b>Optimized Routes:</b> Автоматический выбор оптимальных маршрутов по скорости и комиссиям через несколько bridge протоколов.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_20.png" alt="Cross-Chain Bridge — межсетевые переводы и маршруты" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(99,102,241,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 22: Risk Management -->
+  <section id="screen-22" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Risk Management</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-shield-line text-solana-cyan mt-1"></i><span><b>Система защиты</b>: комплексный мониторинг портфеля 24/7 с активными алертами для предотвращения критических рисков.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-funds-line text-solana-cyan mt-1"></i><span><b>Оценка рисков</b>: автоматический расчёт Value at Risk (VaR) и максимальной просадки для различных временных горизонтов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-bar-chart-box-line text-solana-cyan mt-1"></i><span><b>Продвинутые метрики</b>: расчёт коэффициента Шарпа, Бета, волатильности и Information Ratio для оценки эффективности.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-alert-line text-solana-cyan mt-1"></i><span><b>Квантильный анализ</b>: расчёт VaR для различных доверительных интервалов с Expected Shortfall для экстремальных сценариев.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Advanced Risk Analytics</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-calculator-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Monte Carlo Simulation:</b> Моделирование 10,000+ сценариев для точного расчёта VaR и Expected Shortfall.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-notification-3-line text-orange-400 mt-0.5"></i>
+                  <div><b>Real-time Alerts:</b> Автоматические уведомления при превышении лимитов риска, изменении корреляций активов.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-line-chart-line text-red-400 mt-0.5"></i>
+                  <div><b>Stress Testing:</b> Анализ поведения портфеля в экстремальных рыночных условиях (крах 2008, COVID-19).</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Risk Mitigation Tools</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-star-line text-green-400 mt-0.5"></i>
+                  <div><b>Dynamic Hedging:</b> Автоматическое хеджирование позиций через опционы и фьючерсы при превышении лимитов.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-refresh-line text-blue-400 mt-0.5"></i>
+                  <div><b>Portfolio Rebalancing:</b> Автоматическая ребалансировка при отклонении от целевого распределения активов.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_21.png" alt="Risk Management — VaR, метрики риска и защита портфеля" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(239,68,68,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 23: DeFi Insurance -->
+  <section id="screen-23" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">DeFi Страхование</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-shield-check-line text-solana-cyan mt-1"></i><span><b>Комплексная защита</b>: система верификации и мониторинга всех активных страховых полисов с агрегацией общего покрытия.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-money-dollar-circle-line text-solana-cyan mt-1"></i><span><b>Аналитика страхования</b>: отслеживание собранных премий, активных полисов и коэффициента выплат для оценки эффективности.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-file-shield-line text-solana-cyan mt-1"></i><span><b>Протокол-специфичная защита</b>: индивидуальные полисы для каждого DeFi протокола с настраиваемым покрытием и премиями.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-exchange-box-line text-solana-cyan mt-1"></i><span><b>Автоматизированные выплаты</b>: смарт-контракты для мгновенного возмещения ущерба при верифицированных инцидентах протоколов.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Insurance Protocol Architecture</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-community-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Mutual Insurance Pool:</b> Децентрализованный страховой пул с участием держателей токенов в качестве андеррайтеров.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-robot-line text-green-400 mt-0.5"></i>
+                  <div><b>Automated Claims:</b> Смарт-контракты для автоматической обработки страховых случаев без человеческого вмешательства.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-bar-chart-box-line text-blue-400 mt-0.5"></i>
+                  <div><b>Risk Assessment:</b> ML-модели для оценки рисков протоколов и динамического ценообразования премий.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Coverage Types</div>
+              <div class="grid gap-2 text-sm text-white/85">
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-xs">✓</span><span>Smart Contract Bugs & Exploits</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-xs">✓</span><span>Oracle Price Manipulation</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-xs">✓</span><span>Liquidity Pool Drain Attacks</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-xs">✓</span><span>Governance Token Attacks</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-xs">✓</span><span>Bridge & Cross-Chain Risks</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_22.png" alt="DeFi Страхование — полисы, покрытие и автоматические выплаты" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(16,185,129,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 24: Learn to Earn -->
+  <section id="screen-24" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Learn to Earn</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-graduation-cap-line text-solana-cyan mt-1"></i><span><b>Образовательная экосистема</b>: комплексная платформа для изучения блокчейна и заработка TNG токенов за прохождение курсов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-trophy-line text-solana-cyan mt-1"></i><span><b>Система прогресса</b>: отслеживание XP опыта, уровней, завершённых курсов с визуализацией достижений и наград.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-percent-line text-solana-cyan mt-1"></i><span><b>Геймификация обучения</b>: средний балл за квизы, стрики обучения, система достижений для мотивации студентов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-flashlight-line text-solana-cyan mt-1"></i><span><b>Быстрые действия</b>: поиск курсов по каталогу и просмотр персональных достижений с детальной статистикой.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Learn-to-Earn Tokenomics</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-coin-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Token Rewards:</b> Автоматическое начисление TNG токенов за завершение уроков, успешное прохождение квизов и достижение milestone'ов.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-bar-chart-line text-green-400 mt-0.5"></i>
+                  <div><b>Progress Tracking:</b> On-chain запись прогресса обучения с NFT сертификатами для завершённых курсов через Metaplex.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-group-line text-purple-400 mt-0.5"></i>
+                  <div><b>Community Features:</b> Leaderboard системы, peer-to-peer обучение и возможность создания собственных образовательных курсов.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_23.png" alt="Learn to Earn — образовательная экосистема и токен-награды" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(251,146,60,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 25: Course Creation -->
+  <section id="screen-25" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Создание Курсов</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-edit-box-line text-solana-cyan mt-1"></i><span><b>Конструктор курсов</b>: интуитивный интерфейс для создания образовательного контента с поддержкой различных форматов материалов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-settings-3-line text-solana-cyan mt-1"></i><span><b>Настройка параметров</b>: выбор категории (Блокчейн), уровня сложности (Начинающий), установка системы наград в TNG токенах.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-file-text-line text-solana-cyan mt-1"></i><span><b>Структурирование контента</b>: создание названия, описания, краткого описания для карточки курса с возможностью предпросмотра.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-arrow-right-line text-solana-cyan mt-1"></i><span><b>Пошаговый процесс</b>: guided workflow для создания качественного образовательного контента с валидацией на каждом этапе.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Course Creation Pipeline</div>
+              <div class="grid gap-2 text-sm text-white/85">
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">1</span><span>Основная информация и метаданные</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">2</span><span>Создание уроков и модулей</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">3</span><span>Добавление квизов и заданий</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">4</span><span>Настройка системы наград</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-solana-cyan/20 flex items-center justify-center text-xs">5</span><span>Публикация и модерация</span></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Content Management System</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-upload-cloud-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Multi-Media Support:</b> Поддержка видео, текста, интерактивных элементов, изображений с автоматической оптимизацией контента.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-check-line text-green-400 mt-0.5"></i>
+                  <div><b>Quality Control:</b> Автоматическая модерация контента, peer-review система и контроль качества перед публикацией.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_24.png" alt="Создание Курсов — конструктор образовательного контента" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(59,130,246,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 26: Video Lesson -->
+  <section id="screen-26" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Интерактивные Уроки</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-play-circle-line text-solana-cyan mt-1"></i><span><b>Видео-обучение</b>: высококачественные видео уроки с интерактивными элементами, прогресс-баром и возможностью заметок.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-question-line text-solana-cyan mt-1"></i><span><b>Система квизов</b>: интегрированные тесты после каждого урока с мгновенной обратной связью и объяснением правильных ответов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-medal-line text-solana-cyan mt-1"></i><span><b>Прогресс и награды</b>: отслеживание завершения уроков с автоматическим начислением TNG токенов за достижение целевого результата.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-time-line text-solana-cyan mt-1"></i><span><b>Адаптивное обучение</b>: персонализированный темп изучения с возможностью повторного просмотра сложных концепций.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Interactive Learning Features</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-question-answer-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Smart Quizzes:</b> Адаптивные квизы с различными типами вопросов (множественный выбор, true/false, открытые вопросы).</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-brain-line text-purple-400 mt-0.5"></i>
+                  <div><b>Knowledge Retention:</b> Spaced repetition алгоритмы для повышения запоминания материала и долгосрочного обучения.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-certificate-line text-green-400 mt-0.5"></i>
+                  <div><b>Achievement System:</b> NFT сертификаты за завершение курсов, badges за специальные достижения, leaderboard рейтинги.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Earn-to-Learn Mechanics</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-coins-line text-yellow-400 mt-0.5"></i>
+                  <div><b>Token Rewards:</b> TNG токены начисляются за прохождение уроков, успешные квизы и достижение milestone'ов в обучении.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-line-chart-line text-orange-400 mt-0.5"></i>
+                  <div><b>Progressive Rewards:</b> Увеличение наград за последовательное обучение, стрики и высокие результаты в тестированиях.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-community-line text-blue-400 mt-0.5"></i>
+                  <div><b>Social Learning:</b> Дополнительные награды за создание качественного контента, помощь другим студентам и peer-review.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_25.png" alt="Интерактивные Уроки — видео обучение с квизами и наградами" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(168,85,247,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 27: Jobs Marketplace -->
+  <section id="screen-27" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Jobs Marketplace</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-briefcase-line text-solana-cyan mt-1"></i><span><b>Web3 карьерная платформа</b>: специализированный маркетплейс для поиска работы в блокчейн индустрии с фокусом на удалённые позиции.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-search-line text-solana-cyan mt-1"></i><span><b>Интеллектуальный поиск</b>: многоуровневая система фильтрации по навыкам, компаниям, типам работы с поддержкой удалённых вакансий.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-dashboard-line text-solana-cyan mt-1"></i><span><b>Аналитика рынка</b>: отслеживание открытых позиций, средних зарплат, успешности фрилансеров с live статистикой.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-tools-line text-solana-cyan mt-1"></i><span><b>Многофункциональные инструменты</b>: поиск, создание вакансий, заявки, управление талантами, контракты и аналитика.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Blockchain-Based Employment</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-check-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Verified Profiles:</b> On-chain верификация навыков через completed courses, NFT сертификаты и peer-review системы.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-coin-line text-green-400 mt-0.5"></i>
+                  <div><b>Crypto Payments:</b> Прямые выплаты в USDC/SOL через escrow смарт-контракты с автоматическим релизом средств.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-user-star-line text-purple-400 mt-0.5"></i>
+                  <div><b>Reputation System:</b> Децентрализованная система репутации на основе завершённых проектов и отзывов клиентов.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_26.png" alt="Jobs Marketplace — Web3 карьерная платформа и аналитика рынка" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(34,197,94,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 28: Job Creation -->
+  <section id="screen-28" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Создание Вакансий</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-edit-2-line text-solana-cyan mt-1"></i><span><b>Конструктор вакансий</b>: структурированная форма для создания детальных описаний позиций с шаблонами и автозаполнением.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-money-dollar-circle-line text-solana-cyan mt-1"></i><span><b>Гибкое ценообразование</b>: настройка бюджета в USDC, выбор типа оплаты (фиксированная/почасовая) с поддержкой escrow.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-settings-3-line text-solana-cyan mt-1"></i><span><b>Расширенные настройки</b>: выбор категории Development, установка дедлайнов, опции удалённой работы и использования escrow.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-time-line text-solana-cyan mt-1"></i><span><b>Управление проектами</b>: встроенные инструменты для отслеживания прогресса, milestone'ов и коммуникации с кандидатами.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Smart Contract Integration</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-safe-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Escrow Automation:</b> Автоматическое создание escrow контрактов для безопасных выплат с milestone-based релизами.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-file-shield-line text-green-400 mt-0.5"></i>
+                  <div><b>Contract Templates:</b> Готовые шаблоны смарт-контрактов для различных типов работ с настраиваемыми условиями.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-notification-3-line text-orange-400 mt-0.5"></i>
+                  <div><b>Dispute Resolution:</b> Встроенная система разрешения споров через DAO voting и арбитражные механизмы.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_27.png" alt="Создание Вакансий — конструктор с escrow и смарт-контрактами" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(59,130,246,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 29: Developer Profile -->
+  <section id="screen-29" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 data-aos="fade-right" class="text-3xl md:text-5xl font-extrabold drop-shadow-glow">Jobs Marketplace</h2>
+          <div data-aos="fade-right" data-aos-delay="200" class="space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <p class="text-lg leading-relaxed">
+              <strong>Web3 карьерная платформа</strong> с интеллектуальным поиском, 
+              аналитикой рынка и многофункциональными инструментами для поиска работы.
+            </p>
+
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-solana-cyan">🔍 Поиск и Фильтрация</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-search-line text-green-400 mt-1"></i><span><b>Умный поиск:</b> Поиск по навыкам, технологиям, уровню оплаты и типу проекта</span></li>
+                <li class="flex items-start gap-3"><i class="ri-filter-line text-green-400 mt-1"></i><span><b>Продвинутые фильтры:</b> Сортировка по локации, опыту, срокам и формату работы</span></li>
+                <li class="flex items-start gap-3"><i class="ri-bookmark-line text-green-400 mt-1"></i><span><b>Избранные вакансии:</b> Сохранение интересных предложений для последующего просмотра</span></li>
+              </ul>
+
+              <h3 class="text-lg font-semibold text-solana-cyan">📊 Аналитика и Инсайты</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-line-chart-line text-blue-400 mt-1"></i><span><b>Рыночная аналитика:</b> Статистика зарплат, востребованных навыков и трендов</span></li>
+                <li class="flex items-start gap-3"><i class="ri-trophy-line text-blue-400 mt-1"></i><span><b>Рейтинги компаний:</b> Оценки работодателей от сообщества разработчиков</span></li>
+                <li class="flex items-start gap-3"><i class="ri-notification-line text-blue-400 mt-1"></i><span><b>Персональные рекомендации:</b> ИИ-алгоритм подбора подходящих вакансий</span></li>
+              </ul>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Blockchain-Based Employment</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-shield-check-line text-solana-cyan mt-0.5"></i>
+                  <div><b>Verified Profiles:</b> On-chain верификация профилей через кошелек и выполненные проекты</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-coin-line text-green-400 mt-0.5"></i>
+                  <div><b>Crypto Payments:</b> Оплата в USDC/SOL через escrow смарт-контракты с автоматическим релизом</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-star-line text-purple-400 mt-0.5"></i>
+                  <div><b>Decentralized Reputation:</b> Система репутации на блокчейне, устойчивая к манипуляциям</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_26.png" alt="Jobs Marketplace — поиск работы в Web3" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(168,85,247,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 30: Achievements System -->
+  <section id="screen-30" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Система Достижений</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <ul class="space-y-2">
+              <li class="flex items-start gap-3"><i class="ri-award-line text-solana-cyan mt-1"></i><span><b>Мультикатегорийные достижения</b>: DAO Активист, NFT Коллекционер, Первые шаги, Трейдинг Мастер с различными уровнями сложности.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-progress-3-line text-solana-cyan mt-1"></i><span><b>Прогрессивная система</b>: отслеживание прогресса по каждому достижению с визуализацией этапов и milestone'ов.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-gift-line text-solana-cyan mt-1"></i><span><b>Токен-награды</b>: автоматическое начисление TNG токенов за получение достижений с прогрессивным увеличением наград.</span></li>
+              <li class="flex items-start gap-3"><i class="ri-bar-chart-box-line text-solana-cyan mt-1"></i><span><b>Детальная статистика</b>: трекинг полученных, редких и недавних достижений с персональной аналитикой активности.</span></li>
+            </ul>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">Achievement Categories</div>
+              <div class="grid gap-2 text-sm text-white/85">
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-xs">🏛️</span><span>DAO Активист — участие в голосованиях и предложениях</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center text-xs">🎨</span><span>NFT Коллекционер — сбор уникальных токенов</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-xs">👶</span><span>Первые шаги — базовые действия в экосистеме</span></div>
+                <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-xs">📈</span><span>Трейдинг Мастер — успешные DeFi операции</span></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+              <div class="text-sm text-white/70 mb-3">NFT Achievement System</div>
+              <div class="grid gap-3 text-sm text-white/85">
+                <div class="flex items-start gap-2">
+                  <i class="ri-medal-line text-solana-cyan mt-0.5"></i>
+                  <div><b>NFT Badges:</b> Каждое достижение минтится как уникальный NFT badge через Metaplex с on-chain метаданными.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-trophy-line text-gold-400 mt-0.5"></i>
+                  <div><b>Rarity System:</b> Редкие достижения (Silver, Gold, Platinum) с повышенными наградами и социальным статусом.</div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i class="ri-share-line text-green-400 mt-0.5"></i>
+                  <div><b>Social Proof:</b> Возможность демонстрации достижений в профиле, социальных сетях и как proof-of-skill для работодателей.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div class="reveal relative w-[300px] h-[580px] md:w-[500px] md:h-[900px] rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div class="absolute inset-0 rounded-[28px] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+          </div>
+          <div class="absolute inset-0">
+            <img src="images/Screenshot_29.png" alt="Система Достижений — NFT badges и токен-награды" class="w-full h-full object-cover" />
+          </div>
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(251,146,60,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 31: Developer Profile -->
+  <section id="screen-31" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 data-aos="fade-right" class="text-3xl md:text-5xl font-extrabold drop-shadow-glow">Профиль разработчика</h2>
+          <div data-aos="fade-right" data-aos-delay="200" class="space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <p class="text-lg leading-relaxed">
+              <strong>Верифицированный профиль</strong> с системой уровней, статистикой активности 
+              и управлением репутацией в Web3 экосистеме.
+            </p>
+
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-solana-cyan">👤 Профиль и Верификация</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-shield-check-line text-green-400 mt-1"></i><span><b>Верифицированный статус:</b> Подтверждение через кошелек и социальные сети</span></li>
+                <li class="flex items-start gap-3"><i class="ri-medal-line text-green-400 mt-1"></i><span><b>Система уровней:</b> Прогрессия от Новичок до Эксперт на основе активности</span></li>
+                <li class="flex items-start gap-3"><i class="ri-bar-chart-line text-green-400 mt-1"></i><span><b>Статистика активности:</b> Выполненные задачи, заработанные токены, рейтинг</span></li>
+              </ul>
+
+              <h3 class="text-lg font-semibold text-solana-cyan">⚙️ Управление профилем</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-edit-line text-blue-400 mt-1"></i><span><b>Редактирование данных:</b> Обновление навыков, портфолио и контактов</span></li>
+                <li class="flex items-start gap-3"><i class="ri-eye-line text-blue-400 mt-1"></i><span><b>Настройки приватности:</b> Контроль видимости информации для работодателей</span></li>
+                <li class="flex items-start gap-3"><i class="ri-notification-line text-blue-400 mt-1"></i><span><b>Уведомления:</b> Настройка алертов о новых вакансиях и сообщениях</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Screenshot -->
+      <div class="md:col-span-6 flex justify-center">
+        <div data-aos="fade-left" data-aos-delay="400" class="relative w-full max-w-[500px]">
+          <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+            <img 
+              src="images/Screenshot_28.png" 
+              alt="Профиль разработчика" 
+              class="w-full rounded-xl shadow-2xl"
+            />
+          </div>
+          
+          <!-- Web3 Identity System Block -->
+          <div data-aos="fade-up" data-aos-delay="600" class="mt-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4">
+            <div class="text-sm text-white/70 mb-3">Web3 Identity System</div>
+            <div class="space-y-3 text-sm text-white/85">
+              <div class="flex items-start gap-2">
+                <i class="ri-wallet-line text-solana-cyan mt-0.5"></i>
+                <div><b>Wallet Integration:</b> Подключение внешних кошельков (Phantom, Solflare) для верификации владения</div>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="ri-verified-badge-line text-green-400 mt-0.5"></i>
+                <div><b>On-chain Skill Verification:</b> Подтверждение навыков через выполненные смарт-контракт задачи</div>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="ri-calculator-line text-purple-400 mt-0.5"></i>
+                <div><b>Algorithmic Reputation Score:</b> Автоматический расчет репутации на основе успешных проектов и отзывов</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 32: Summary & Achievements -->
+  <section id="screen-32" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Results -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Результаты</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-solana-cyan">🎯 Требования ТЗ vs Реализация</h3>
+              <div class="space-y-3 text-sm">
+                <div class="flex items-start gap-3">
+                  <span class="text-green-400 font-bold">✓ 500%</span>
+                  <span><b>DeFi Protocol:</b> Не просто один протокол, а полная экосистема: DEX, Lending, Staking, Flash Loans, DAO</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="text-green-400 font-bold">✓ 300%</span>
+                  <span><b>Smart Contracts:</b> 8+ активных контрактов вместо базовых требований</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="text-green-400 font-bold">✓ 1000%</span>
+                  <span><b>Функционал:</b> 5 полных модулей (Wallet, DeFi, NFT, Learn, Jobs) вместо одного</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="text-green-400 font-bold">✓ 200%</span>
+                  <span><b>UX/UI:</b> Mobile-first + Telegram WebApp + 30 экранов</span>
+                </div>
+              </div>
+
+              <h3 class="text-lg font-semibold text-solana-cyan">🚀 Уникальность для Solana</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-smartphone-line text-solana-cyan mt-1"></i><span><b>Первое Telegram WebApp</b> с полным DeFi функционалом на Solana</span></li>
+                <li class="flex items-start gap-3"><i class="ri-apps-line text-solana-cyan mt-1"></i><span><b>SuperApp концепция</b>: все Web3 сервисы в одном приложении</span></li>
+                <li class="flex items-start gap-3"><i class="ri-graduation-cap-line text-solana-cyan mt-1"></i><span><b>Learn-to-Earn интеграция</b> с реальными токен-наградами</span></li>
+                <li class="flex items-start gap-3"><i class="ri-briefcase-line text-solana-cyan mt-1"></i><span><b>Web3 Jobs Marketplace</b> с on-chain репутацией</span></li>
+              </ul>
+
+              <h3 class="text-lg font-semibold text-solana-cyan">📊 Метрики успеха</h3>
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="rounded-xl bg-white/5 p-3 text-center">
+                  <div class="text-lg font-bold text-green-400">100%</div>
+                  <div class="text-xs text-white/70">On-chain операции</div>
+                </div>
+                <div class="rounded-xl bg-white/5 p-3 text-center">
+                  <div class="text-lg font-bold text-blue-400">65K+</div>
+                  <div class="text-xs text-white/70">TPS Solana</div>
+                </div>
+                <div class="rounded-xl bg-white/5 p-3 text-center">
+                  <div class="text-lg font-bold text-purple-400">0ms</div>
+                  <div class="text-xs text-white/70">UI lag</div>
+                </div>
+                <div class="rounded-xl bg-white/5 p-3 text-center">
+                  <div class="text-lg font-bold text-orange-400">Mobile</div>
+                  <div class="text-xs text-white/70">First UX</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Next Steps -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 class="reveal text-3xl md:text-5xl font-extrabold drop-shadow-glow">Перспективы</h2>
+          <div class="reveal space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-solana-cyan">🎯 Применение</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-bank-line text-green-400 mt-1"></i><span><b>DeFi Hub:</b> Единая точка входа в Solana DeFi для новичков</span></li>
+                <li class="flex items-start gap-3"><i class="ri-graduation-cap-line text-blue-400 mt-1"></i><span><b>Web3 Education:</b> Обучающая платформа с практическими навыками</span></li>
+                <li class="flex items-start gap-3"><i class="ri-briefcase-line text-purple-400 mt-1"></i><span><b>Freelance Platform:</b> Децентрализованный рынок Web3 талантов</span></li>
+                <li class="flex items-start gap-3"><i class="ri-smartphone-line text-orange-400 mt-1"></i><span><b>Mass Adoption:</b> Telegram интеграция для миллионов пользователей</span></li>
+              </ul>
+
+              <h3 class="text-lg font-semibold text-solana-cyan">📈 Масштабирование</h3>
+              <div class="space-y-3">
+                <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-sm font-semibold text-white mb-2">Фаза 1: Mainnet (3 месяца)</div>
+                  <ul class="text-xs space-y-1 text-white/70">
+                    <li>• Миграция на Solana Mainnet</li>
+                    <li>• Партнерство с Telegram каналами</li>
+                    <li>• Интеграция с крупными DeFi протоколами</li>
+                  </ul>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-sm font-semibold text-white mb-2">Фаза 2: Экосистема (6 месяцев)</div>
+                  <ul class="text-xs space-y-1 text-white/70">
+                    <li>• API для внешних разработчиков</li>
+                    <li>• White-label решения</li>
+                    <li>• Cross-chain bridge интеграции</li>
+                  </ul>
+                </div>
+              </div>
+
+              <h3 class="text-lg font-semibold text-solana-cyan">🤝 Что нужно</h3>
+              <div class="grid grid-cols-1 gap-3 text-sm">
+                <div class="rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-3 border border-white/10">
+                  <div class="font-semibold text-white">Партнерство</div>
+                  <div class="text-xs text-white/70">Solana Foundation, Jupiter, Metaplex</div>
+                </div>
+                <div class="rounded-xl bg-gradient-to-r from-green-500/20 to-blue-500/20 p-3 border border-white/10">
+                  <div class="font-semibold text-white">Ресурсы</div>
+                  <div class="text-xs text-white/70">Mainnet deployment, аудит контрактов</div>
+                </div>
+                <div class="rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-3 border border-white/10">
+                  <div class="font-semibold text-white">Комьюнити</div>
+                  <div class="text-xs text-white/70">Early adopters, контент-криейторы</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom: Final Message -->
+      <div class="md:col-span-12 reveal">
+        <div class="text-center rounded-2xl border border-white/10 bg-gradient-to-r from-solana-cyan/10 to-solana-purple/10 backdrop-blur-xl p-8">
+          <h3 class="text-2xl font-bold text-white mb-4">
+            🏆 Solana SuperApp: Первая комплексная Web3 экосистема
+          </h3>
+          <p class="text-lg text-white/80 max-w-4xl mx-auto">
+            Мы не просто выполнили ТЗ — мы создали будущее Web3 UX на Solana. 
+            Вместо одного DeFi протокола получилась полная экосистема из 5 модулей, 
+            8+ смарт-контрактов и 30 экранов с mobile-first подходом.
+          </p>
+          <div class="mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 border border-solana-cyan/30 bg-solana-cyan/10 backdrop-blur-xl">
+            <span class="w-3 h-3 rounded-full bg-solana-cyan animate-pulse"></span>
+            <span class="text-sm font-semibold text-white">Ready for Mainnet • Built on Solana</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 33: Results Summary -->
+  <section id="screen-33" class="relative flex items-center justify-center px-6 md:px-10">
+    <div class="max-w-6xl w-full grid md:grid-cols-12 gap-10">
+      <!-- Left: Text -->
+      <div class="md:col-span-6 flex items-center">
+        <div class="space-y-6">
+          <h2 data-aos="fade-right" class="text-3xl md:text-5xl font-extrabold drop-shadow-glow">Результаты разработки</h2>
+          <div data-aos="fade-right" data-aos-delay="200" class="space-y-4 text-white/85 text-base md:text-lg leading-relaxed">
+            <p class="text-lg leading-relaxed">
+              Создана <strong>комплексная Web3 экосистема</strong> на Solana, значительно превышающая 
+              требования технического задания.
+            </p>
+
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-solana-cyan">📊 Ключевые показатели</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 text-center">
+                  <div class="text-2xl font-bold text-green-400"></div>
+                  <div class="text-sm text-white/70">Смарт-контрактов</div>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 text-center">
+                  <div class="text-2xl font-bold text-blue-400">5</div>
+                  <div class="text-sm text-white/70">Модулей</div>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 text-center">
+                  <div class="text-2xl font-bold text-purple-400">33</div>
+                  <div class="text-sm text-white/70">Экранов</div>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 text-center">
+                  <div class="text-2xl font-bold text-orange-400">100%</div>
+                  <div class="text-sm text-white/70">On-chain</div>
+                </div>
+              </div>
+
+              <h3 class="text-lg font-semibold text-solana-cyan">🎯 Перевыполнение ТЗ</h3>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start gap-3"><i class="ri-check-line text-green-400 mt-1"></i><span>Вместо одного DeFi протокола — полная экосистема</span></li>
+                <li class="flex items-start gap-3"><i class="ri-check-line text-green-400 mt-1"></i><span>Интеграция с Telegram WebApp для массового внедрения</span></li>
+                <li class="flex items-start gap-3"><i class="ri-check-line text-green-400 mt-1"></i><span>Дополнительные модули: Learn-to-Earn, Jobs Marketplace</span></li>
+                <li class="flex items-start gap-3"><i class="ri-check-line text-green-400 mt-1"></i><span>Mobile-first UX с современными анимациями</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Architecture Overview -->
+      <div class="md:col-span-6 flex justify-center">
+        <div data-aos="fade-left" data-aos-delay="400" class="relative w-full max-w-[500px]">
+          <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
+            <h3 class="text-center text-lg font-semibold text-white mb-6">Архитектура решения</h3>
+            
+            <!-- Module Overview -->
+            <div class="space-y-3">
+              <div class="rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 p-3 border border-white/10">
+                <div class="text-sm font-semibold text-white mb-2">Core & Wallet</div>
+                <div class="text-xs text-white/70">Custodial кошелек, TNG Faucet, QR переводы</div>
+              </div>
+              
+              <div class="rounded-xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 p-3 border border-white/10">
+                <div class="text-sm font-semibold text-white mb-2">DeFi Ecosystem</div>
+                <div class="text-xs text-white/70">Staking, Swap, Lending, Flash Loans, Analytics</div>
+              </div>
+              
+              <div class="rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-3 border border-white/10">
+                <div class="text-sm font-semibold text-white mb-2">NFT & Marketplace</div>
+                <div class="text-xs text-white/70">Metaplex интеграция, P2P торговля</div>
+              </div>
+              
+              <div class="rounded-xl bg-gradient-to-r from-orange-500/20 to-red-500/20 p-3 border border-white/10">
+                <div class="text-sm font-semibold text-white mb-2">Learn & Jobs</div>
+                <div class="text-xs text-white/70">Earn-to-Learn, Web3 Jobs Marketplace</div>
+              </div>
+            </div>
+
+            <!-- Tech Stack -->
+            <div class="mt-6 pt-4 border-t border-white/10">
+              <div class="text-sm font-semibold text-white mb-3">Tech Stack</div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-white/10 rounded px-2 py-1 text-center">Solana + Anchor</div>
+                <div class="bg-white/10 rounded px-2 py-1 text-center">Next.js 14</div>
+                <div class="bg-white/10 rounded px-2 py-1 text-center">Telegram WebApp</div>
+                <div class="bg-white/10 rounded px-2 py-1 text-center">PostgreSQL</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="absolute -inset-[2px] rounded-[30px] pointer-events-none"
+               style="background: radial-gradient(400px 200px at 80% 10%, rgba(153,69,255,0.12), transparent 60%)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 34: Call to Action -->
+  <section id="screen-34" class="relative flex items-center justify-center px-6 md:px-10 bg-gradient-to-br from-purple-900/20 to-cyan-900/20">
+    <div class="max-w-4xl w-full text-center space-y-8">
+      <!-- Title -->
+      <div data-aos="zoom-in" data-aos-duration="1000">
+        <h1 class="text-4xl md:text-6xl font-black drop-shadow-glow leading-tight">
+          🚀 Попробуйте сами!
+        </h1>
+        <p class="mt-4 text-lg md:text-xl text-white/80">
+          Протестируйте все возможности Solana SuperApp
+        </p>
+      </div>
+
+      <!-- Bot Info -->
+      <div data-aos="fade-up" data-aos-delay="500" class="epic-card rounded-3xl p-8 md:p-12 space-y-6">
+        <div class="text-6xl mb-4">🤖</div>
+        <h2 class="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+          @solanateambot
+        </h2>
+        <p class="text-lg text-white/90 leading-relaxed max-w-2xl mx-auto">
+          Перейдите в Telegram бот и протестируйте полный функционал: 
+          кошелек, DeFi операции, NFT, обучение и поиск работы — всё работает в реальном времени на Solana Devnet.
+        </p>
+        
+        <!-- Features to test -->
+        <div class="grid md:grid-cols-2 gap-6 mt-8 text-left">
+          <div>
+            <h3 class="text-lg font-semibold text-cyan-400 mb-3">💰 Протестируйте DeFi</h3>
+            <ul class="space-y-1 text-sm text-white/80">
+              <li>• Получите тестовые TNG токены</li>
+              <li>• Попробуйте стейкинг и свапы</li>
+              <li>• Изучите аналитику портфеля</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-purple-400 mb-3">🎓 Изучите платформу</h3>
+            <ul class="space-y-1 text-sm text-white/80">
+              <li>• Создайте NFT через Metaplex</li>
+              <li>• Пройдите обучающие курсы</li>
+              <li>• Найдите Web3 проекты</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Button -->
+      <div data-aos="zoom-in" data-aos-delay="1000">
+        <div class="inline-flex items-center gap-4 rounded-full px-8 py-4 border-2 border-cyan-400 bg-gradient-to-r from-purple-600/20 to-cyan-600/20 backdrop-blur-xl text-lg font-semibold text-white hover:scale-105 transition-transform cursor-pointer">
+          <span class="text-2xl">📱</span>
+          <span>Открыть @solanateambot</span>
+          <span class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+        </div>
+        <p class="mt-4 text-sm text-white/60">
+          Все функции доступны прямо сейчас • Solana Devnet
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EPIC JAVASCRIPT WITH FIREWORKS & EFFECTS -->
+  <script>
+    // 🎆 EPIC FIREWORKS SYSTEM 🎆
+    function createFirework(x, y) {
+      const firework = document.createElement('div');
+      firework.className = 'firework';
+      firework.style.left = x + 'px';
+      firework.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+      document.getElementById('fireworks').appendChild(firework);
+
+      setTimeout(() => {
+        for (let i = 0; i < 20; i++) {
+          createParticle(x, y * 0.2);
+        }
+        firework.remove();
+      }, 300);
+    }
+
+    function createParticle(x, y) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      particle.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+      
+      const dx = (Math.random() - 0.5) * 200;
+      const dy = (Math.random() - 0.5) * 200;
+      particle.style.setProperty('--dx', dx + 'px');
+      particle.style.setProperty('--dy', dy + 'px');
+      
+      document.getElementById('fireworks').appendChild(particle);
+      setTimeout(() => particle.remove(), 3000);
+    }
+
+    // 💫 MATRIX RAIN EFFECT
+    function createMatrixRain() {
+      const matrixContainer = document.getElementById('matrix-rain');
+      const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+      
+      for (let i = 0; i < 15; i++) {
+        const column = document.createElement('div');
+        column.className = 'matrix-column';
+        column.style.left = Math.random() * 100 + '%';
+        column.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        column.style.animationDelay = Math.random() * 2 + 's';
+        
+        let text = '';
+        for (let j = 0; j < 15; j++) {
+          text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+        }
+        column.innerHTML = text;
+        
+        matrixContainer.appendChild(column);
+      }
+    }
+
+    // 📳 SCREEN SHAKE EFFECT
+    function shakeScreen() {
+      document.body.classList.add('screen-shake');
+      setTimeout(() => document.body.classList.remove('screen-shake'), 500);
+    }
+
+    // 🎯 CONTROLLED EFFECTS (Less Vibration)
+    let lastFireworkTime = 0;
+    function triggerRandomEffects() {
+      const now = Date.now();
+      if (now - lastFireworkTime > 2000) { // Увеличил интервал
+        const x = Math.random() * window.innerWidth;
+        const y = window.innerHeight;
+        createFirework(x, y);
+        lastFireworkTime = now;
+      }
+    }
+    
+    // Separate controlled shake (only on special events)
+    function triggerSpecialEffects() {
+      triggerRandomEffects();
+      if (Math.random() < 0.2) { // Уменьшил вероятность
+        shakeScreen();
+      }
+    }
+
+    // 🚀 ENHANCED SMOOTH SCROLL WITH EPIC EFFECTS
+    document.querySelectorAll('nav .dot').forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        e.preventDefault()
+        const id = dot.getAttribute('data-target')
+        const el = document.getElementById(id)
+        
+        // 🎆 CONTROLLED EFFECTS ON CLICK
+        if (dot.classList.contains('finale-dot')) {
+          // Special effects for finale
+          triggerSpecialEffects();
+        } else {
+          // Gentle effects for normal navigation
+          triggerRandomEffects();
+        }
+        
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    })
+
+    // IntersectionObserver for sections -> activate corresponding dot
+    const dots = Array.from(document.querySelectorAll('nav .dot'))
+    const sectionIds = ['screen-1', 'screen-2', 'screen-3', 'screen-4', 'screen-5', 'screen-6', 'screen-7', 'screen-8', 'screen-9', 'screen-10', 'screen-11', 'screen-12', 'screen-13', 'screen-14', 'screen-15', 'screen-16', 'screen-17', 'screen-18', 'screen-19', 'screen-20', 'screen-21', 'screen-22', 'screen-23', 'screen-24', 'screen-25', 'screen-26', 'screen-27', 'screen-28', 'screen-29', 'screen-30', 'screen-31', 'screen-32', 'screen-33', 'screen-34']
+    const sectionMap = new Map(sectionIds.map(id => [id, document.getElementById(id)]))
+
+    const setActiveDot = (id) => {
+      dots.forEach(d => d.classList.remove('active'))
+      const dot = dots.find(d => d.getAttribute('data-target') === id)
+      if (dot) dot.classList.add('active')
+    }
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const id = entry.target.id
+        if (entry.isIntersecting && entry.intersectionRatio > 0.55) {
+          setActiveDot(id)
+        }
+      })
+    }, { root: null, rootMargin: '0px', threshold: [0.4, 0.6, 0.9] })
+
+    sectionMap.forEach((el) => {
+      if (el) io.observe(el)
+    })
+    setActiveDot('screen-1')
+
+    // 🌟 ENHANCED REVEAL ANIMATIONS WITH EFFECTS
+    const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right')
+    const revealIO = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible')
+          entry.target.classList.add('active')
+          
+          // 🎆 GENTLE EFFECTS ON REVEAL
+          if (Math.random() < 0.1) { // Уменьшил с 0.3 до 0.1
+            setTimeout(() => triggerRandomEffects(), Math.random() * 1500);
+          }
+          
+          revealIO.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' })
+    revealEls.forEach(el => revealIO.observe(el))
+
+    // 🎬 INITIALIZE EPIC EFFECTS ON LOAD
+    window.addEventListener('load', () => {
+      // Initialize AOS animations
+      AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true,
+        offset: 100
+      });
+      
+      // Start matrix rain
+      createMatrixRain();
+      
+      // Welcome fireworks show
+      setTimeout(() => {
+        for (let i = 0; i < 5; i++) {
+          setTimeout(() => {
+            createFirework(Math.random() * window.innerWidth, window.innerHeight);
+          }, i * 400);
+        }
+        shakeScreen();
+      }, 1500);
+      
+      // Rare ambient effects (much less frequent)
+      setInterval(() => {
+        if (Math.random() < 0.02) { // Уменьшил с 0.08 до 0.02
+          triggerRandomEffects();
+        }
+      }, 8000); // Увеличил с 4000 до 8000
+    });
+
+    // 🎯 MINIMAL SCROLL EFFECTS
+    let scrollTicking = false;
+    window.addEventListener('scroll', () => {
+      if (!scrollTicking) {
+        requestAnimationFrame(() => {
+          // Removed random scroll effects - too much vibration
+          scrollTicking = false;
+        });
+        scrollTicking = true;
+      }
+    });
+
+    // 🖱️ SUBTLE MOUSE EFFECTS (only on click)
+    document.addEventListener('click', (e) => {
+      if (Math.random() < 0.3) {
+        createParticle(e.clientX, e.clientY);
+      }
+    });
+
+    // 🎊 EPIC FINALE FOR LAST SLIDE
+    const finalSlide = document.getElementById('screen-34');
+    if (finalSlide) {
+      const finalObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // 🎆 GRAND FINALE FIREWORKS SHOW!
+            setTimeout(() => {
+              for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                  createFirework(Math.random() * window.innerWidth, window.innerHeight);
+                }, i * 150);
+              }
+              setTimeout(() => shakeScreen(), 1000);
+            }, 800);
+          }
+        });
+      }, { threshold: 0.4 });
+      
+      finalObserver.observe(finalSlide);
+    }
+
+    // 🎮 KEYBOARD SHORTCUTS FOR EFFECTS
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'f' || e.key === 'F') {
+        // Press F for Fireworks!
+        for (let i = 0; i < 5; i++) {
+          setTimeout(() => {
+            createFirework(Math.random() * window.innerWidth, window.innerHeight);
+          }, i * 100);
+        }
+      }
+      if (e.key === 's' || e.key === 'S') {
+        // Press S for Shake!
+        shakeScreen();
+      }
+    });
+  </script>
+</body>
+</html>

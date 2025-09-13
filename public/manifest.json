@@ -1,0 +1,27 @@
+{
+  "name": "Solana SuperApp",
+  "short_name": "SolanaApp",
+  "description": "Полнофункциональное Solana приложение для Telegram",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#9945FF",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "ru",
+  "categories": ["finance", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,2042 @@
+// Prisma схема для Solana SuperApp
+// Полнофункциональное Telegram Mini App для экосистемы Solana
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Пользователи (единая роль USER согласно техзаданию)
+model User {
+  id           String  @id @default(cuid())
+  telegramId   BigInt  @unique
+  username     String?
+  firstName    String
+  lastName     String?
+  languageCode String  @default("ru")
+  isPremium    Boolean @default(false)
+  photoUrl     String?
+
+  // Solana кошелек
+  walletAddress       String? @unique
+  encryptedPrivateKey String? // Зашифрованный приватный ключ для on-chain операций
+
+  // Метаданные
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  // Связи
+  transactions    Transaction[]
+  nfts            NFT[]
+  daoVotes        DAOVote[]
+  daoProposals    DAOProposal[]    @relation("DAOProposalCreator")
+  courses         UserCourse[]
+  jobs            Job[]
+  jobApplications JobApplication[]
+  escrowContracts EscrowContract[]
+  sessions        UserSession[]
+
+  // Off-chain ledger связи
+  balances      Balance[]
+  ledgerEntries LedgerEntry[]
+  holds         Hold[]
+  onchainTxs    OnchainTx[]
+
+  // Отложенные переводы
+  pendingTransfersFrom PendingTransfer[] @relation("SenderPendingTransfers")
+  pendingTransfersTo   PendingTransfer[] @relation("RecipientPendingTransfers")
+
+  // Learn система связи
+  lessonProgress LessonProgress[]
+  quizAttempts   QuizAttempt[]
+  certificates   Certificate[]
+  badges         Badge[]
+  userChallenges UserChallenge[]
+  courseReviews  CourseReview[]
+  achievements   Achievement[]
+  leaderboard    Leaderboard[]
+
+  // NFT система связи
+  ownedNFTs   NFT[]      @relation("OwnedNFTs")
+  createdNFTs NFT[]      @relation("CreatedNFTs")
+  nftLikes    NFTLike[]
+  nftViews    NFTView[]
+  nftShares   NFTShare[]
+
+  // NFT Collections
+  nftCollections     NFTCollection[]
+  nftCollectionLikes NFTCollectionLike[]
+  nftCollectionViews NFTCollectionView[]
+
+  // NFT Transactions
+  nftTransactionsFrom NFTTransaction[] @relation("NFTTransactionsFrom")
+  nftTransactionsTo   NFTTransaction[] @relation("NFTTransactionsTo")
+
+  // DeFi relations
+  stakingPositions      StakingPosition[]
+  farmingPositions      FarmingPosition[]
+  swapTransactions      SwapTransaction[]
+  portfolioSnapshots    DeFiPortfolioSnapshot[]
+  userStakes            UserStake[]
+  userLendingPositions  UserLendingPosition[]
+  flashLoans            FlashLoan[]
+  bridgeTransactions    BridgeTransaction[]
+  crossChainSwaps       CrossChainSwapTransaction[]
+  insurancePolicies     InsurancePolicy[]
+
+  @@map("users")
+}
+
+// Транзакции
+model Transaction {
+  id     String @id @default(cuid())
+  userId String
+
+  // Данные транзакции
+  signature String          @unique
+  type      TransactionType
+  amount    BigInt
+  token     String          @default("SOL") // SOL, USDC, TNG
+
+  // Адреса
+  fromAddress String?
+  toAddress   String?
+
+  // Метаданные
+  status      TransactionStatus @default(PENDING)
+  description String?
+  metadata    Json?
+
+  // Временные метки
+  createdAt   DateTime  @default(now())
+  confirmedAt DateTime?
+
+  // Связи
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("transactions")
+}
+
+enum TransactionType {
+  SEND
+  RECEIVE
+  MINT
+  BURN
+  SWAP
+  STAKE
+  UNSTAKE
+  VOTE
+  ESCROW_DEPOSIT
+  ESCROW_RELEASE
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  CANCELLED
+}
+
+// NFT - Production Model
+model NFT {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  imageUri    String?
+  mintAddress String? @unique
+  type        NFTType @default(COLLECTIBLE)
+  status      String  @default("ACTIVE") // ACTIVE, USED, EXPIRED, FOR_SALE
+
+  // Collection
+  collectionId String?
+
+  // Ownership
+  ownerId   String
+  creatorId String
+
+  // Pricing
+  isForSale Boolean @default(false)
+  price     BigInt? // in lamports or smallest unit
+  currency  String? @default("SOL") // SOL or TNG
+
+  // Usage tracking
+  usageCount Int  @default(0)
+  maxUsage   Int?
+
+  // Social stats
+  likes  NFTLike[]
+  views  NFTView[]
+  shares NFTShare[]
+
+  // Transactions
+  transactions NFTTransaction[]
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  collection NFTCollection? @relation(fields: [collectionId], references: [id])
+  owner      User           @relation("OwnedNFTs", fields: [ownerId], references: [id])
+  creator    User           @relation("CreatedNFTs", fields: [creatorId], references: [id])
+  User       User?          @relation(fields: [userId], references: [id])
+  userId     String?
+
+  @@map("nfts")
+}
+
+enum NFTType {
+  COLLECTIBLE
+  TICKET
+  COUPON
+  CERTIFICATE
+  BADGE
+  ART
+}
+
+// DAO предложения
+model DAOProposal {
+  id String @id @default(cuid())
+
+  // Данные предложения
+  title       String
+  description String
+  type        ProposalType
+  creatorId   String? // ID создателя предложения
+
+  // Голосование
+  votingStartsAt DateTime
+  votingEndsAt   DateTime
+  quorumRequired BigInt   @default(1000) // в TNG токенах
+
+  // Результаты
+  votesFor     BigInt         @default(0)
+  votesAgainst BigInt         @default(0)
+  status       ProposalStatus @default(ACTIVE)
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  votes   DAOVote[]
+  creator User?     @relation("DAOProposalCreator", fields: [creatorId], references: [id])
+
+  @@map("dao_proposals")
+}
+
+enum ProposalType {
+  TREASURY
+  GOVERNANCE
+  FEATURE
+  COMMUNITY
+}
+
+enum ProposalStatus {
+  DRAFT
+  ACTIVE
+  PASSED
+  REJECTED
+  EXECUTED
+}
+
+// Голоса в DAO
+model DAOVote {
+  id         String @id @default(cuid())
+  userId     String
+  proposalId String
+
+  // Голос
+  vote    VoteType
+  weight  BigInt // вес в TNG токенах
+  comment String?
+
+  // Временные метки
+  createdAt DateTime @default(now())
+
+  // Связи
+  user     User        @relation(fields: [userId], references: [id])
+  proposal DAOProposal @relation(fields: [proposalId], references: [id])
+
+  @@unique([userId, proposalId])
+  @@map("dao_votes")
+}
+
+enum VoteType {
+  FOR
+  AGAINST
+  ABSTAIN
+}
+
+// Курсы обучения
+model Course {
+  id               String  @id @default(cuid())
+  title            String
+  description      String  @db.Text
+  shortDescription String?
+  coverImage       String?
+
+  // Категория и уровень
+  category CourseCategory
+  level    CourseLevel
+
+  // Метрики
+  duration      Int // в минутах
+  lessonsCount  Int     @default(0)
+  studentsCount Int     @default(0)
+  rating        Decimal @default(0) @db.Decimal(3, 2)
+  ratingCount   Int     @default(0)
+
+  // Контент и структура
+  content            Json? // структурированный контент уроков (backward compatibility)
+  learningObjectives String[] // цели обучения
+  prerequisites      String[] // предварительные требования
+
+  // Награды (обновленная система)
+  rewardType           RewardType @default(TNG_TOKENS) // backward compatibility
+  rewardAmount         BigInt     @default(100) // backward compatibility
+  rewardNFT            String? // backward compatibility
+  totalRewardTokens    Int        @default(0) // новая система TNG токены за завершение
+  certificateAvailable Boolean    @default(false)
+
+  // Метаданные
+  difficulty      Difficulty @default(BEGINNER) // backward compatibility
+  difficultyScore Int        @default(1) // 1-10, новая система
+  estimatedTime   Int // в минутах
+  completionRate  Decimal    @default(0) @db.Decimal(5, 2) // процент завершения
+  averageScore    Decimal?   @db.Decimal(5, 2)
+
+  // Статусы
+  isPopular  Boolean @default(false)
+  isNew      Boolean @default(true)
+  isFeatured Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  // On-chain интеграция
+  onChainId Int?    // numeric ID для смарт-контракта
+  onChainTx String? // transaction hash создания на блокчейне
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String? // userId создателя
+
+  // Связи
+  userCourses  UserCourse[]
+  lessons      Lesson[]
+  quizzes      Quiz[]
+  reviews      CourseReview[]
+  certificates Certificate[]
+
+  @@map("courses")
+}
+
+enum RewardType {
+  TNG_TOKENS
+  NFT_CERTIFICATE
+  NFT_BADGE
+  BOTH
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// Записи пользователей на курсы
+model UserCourse {
+  id       String @id @default(cuid())
+  userId   String
+  courseId String
+
+  // Прогресс (обновленная система)
+  progress           Int     @default(0) // 0-100% (backward compatibility)
+  progressPercentage Decimal @default(0) @db.Decimal(5, 2) // новая точная система
+  lessonsCompleted   Int     @default(0)
+  totalTimeSpent     Int     @default(0) // в минутах
+  currentLessonId    String?
+
+  // Статусы
+  status      CourseStatus @default(IN_PROGRESS) // backward compatibility
+  isCompleted Boolean      @default(false)
+  streakDays  Int          @default(0)
+
+  // Статистика
+  score             Int? // результат квизов (backward compatibility)
+  averageQuizScore  Decimal @default(0) @db.Decimal(5, 2)
+  totalXpEarned     Int     @default(0)
+  totalTokensEarned Int     @default(0)
+
+  // Награды
+  rewardClaimed     Boolean @default(false) // backward compatibility
+  rewardTxSignature String? // backward compatibility
+
+  // Временные метки
+  startedAt      DateTime  @default(now())
+  enrolledAt     DateTime  @default(now())
+  lastAccessedAt DateTime?
+  completedAt    DateTime?
+
+  // Связи
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course         Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonProgress LessonProgress[]
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+  @@map("user_courses")
+}
+
+enum CourseStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+// Вакансии
+model Job {
+  id     String @id @default(cuid())
+  userId String // создатель вакансии
+
+  // Данные вакансии
+  title        String
+  description  String
+  requirements String[]
+  skills       String[]
+
+  // Оплата
+  paymentAmount BigInt
+  paymentToken  String      @default("USDC")
+  paymentType   PaymentType @default(FIXED)
+
+  // Метаданные
+  category      JobCategory
+  location      String? // remote, specific location
+  estimatedTime String? // timeline
+  status        JobStatus   @default(OPEN)
+
+  // Временные метки
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  closedAt  DateTime?
+
+  // Связи
+  employer        User             @relation(fields: [userId], references: [id])
+  applications    JobApplication[]
+  escrowContracts EscrowContract[]
+
+  @@map("jobs")
+}
+
+enum PaymentType {
+  FIXED
+  HOURLY
+  MILESTONE
+}
+
+enum JobCategory {
+  DEVELOPMENT
+  DESIGN
+  MARKETING
+  WRITING
+  CONSULTING
+  OTHER
+}
+
+enum JobStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  CLOSED
+}
+
+// Заявки на вакансии
+model JobApplication {
+  id     String @id @default(cuid())
+  userId String // соискатель
+  jobId  String
+
+  // Данные заявки
+  coverLetter   String
+  proposedRate  BigInt?
+  estimatedTime String?
+  portfolio     String[] // ссылки на работы
+
+  // Статус
+  status   ApplicationStatus @default(PENDING)
+  feedback String?
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  applicant User @relation(fields: [userId], references: [id])
+  job       Job  @relation(fields: [jobId], references: [id])
+
+  @@unique([userId, jobId])
+  @@map("job_applications")
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+// Эскроу контракты
+model EscrowContract {
+  id           String @id @default(cuid())
+  jobId        String
+  employerId   String
+  freelancerId String
+
+  // Данные контракта
+  amount     BigInt
+  token      String @default("USDC")
+  terms      String
+  milestones Json? // структура milestone'ов
+
+  // Эскроу данные
+  escrowAddress      String? // Solana program derived address
+  depositTxSignature String?
+  releaseTxSignature String?
+
+  // Статус
+  status EscrowStatus @default(CREATED)
+
+  // Времення метки
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  // Связи
+  job      Job  @relation(fields: [jobId], references: [id])
+  employer User @relation(fields: [employerId], references: [id])
+
+  @@map("escrow_contracts")
+}
+
+enum EscrowStatus {
+  CREATED
+  FUNDED
+  IN_PROGRESS
+  COMPLETED
+  DISPUTED
+  CANCELLED
+  RELEASED
+}
+
+// Сессии пользователей для управления авторизацией
+model UserSession {
+  id        String @id @default(cuid())
+  userId    String
+  sessionId String @unique
+
+  // Информация об устройстве
+  deviceInfo Json // DeviceInfo structure
+  ipAddress  String
+  userAgent  String
+
+  // Статус сессии
+  isActive     Boolean  @default(true)
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+
+  // Временные метки
+  createdAt DateTime @default(now())
+
+  // Связи
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([isActive])
+  @@map("user_sessions")
+}
+
+// === OFF-CHAIN LEDGER MODELS ===
+// Система двойной записи согласно tech.md
+
+// Активы в системе (SOL, USDC, TNG, etc.)
+model Asset {
+  id String @id @default(cuid())
+
+  // Основные данные
+  symbol      String  @unique // SOL, USDC, TNG
+  name        String // Solana, USD Coin, Tenge
+  mintAddress String? @unique // SPL Token mint address (null для SOL)
+  decimals    Int // количество десятичных знаков
+  isOnchain   Boolean @default(true) // false для off-chain активов
+
+  // Метаданные
+  logoUrl     String?
+  description String?
+  isActive    Boolean @default(true)
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  balances      Balance[]
+  ledgerEntries LedgerEntry[]
+  holds         Hold[]
+  onchainTxs    OnchainTx[]
+  baseRates     Rate[]        @relation("BaseAsset")
+  quoteRates    Rate[]        @relation("QuoteAsset")
+
+  @@map("assets")
+}
+
+// Кеш балансов пользователей
+model Balance {
+  id      String @id @default(cuid())
+  userId  String
+  assetId String
+
+  // Баланс данные
+  amountCached    BigInt @default(0) // кешированный баланс в минимальных единицах
+  lockedAmount    BigInt @default(0) // заблокированная сумма (holds)
+  availableAmount BigInt @default(0) // доступная сумма (amountCached - lockedAmount)
+
+  // Метаданные
+  lastUpdated DateTime  @default(now())
+  syncedAt    DateTime? // последняя сверка с on-chain
+
+  // Связи
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@unique([userId, assetId])
+  @@index([userId])
+  @@index([assetId])
+  @@map("balances")
+}
+
+// Записи в леджере (двойная запись)
+model LedgerEntry {
+  id      String @id @default(cuid())
+  userId  String
+  assetId String
+
+  // Данные записи
+  direction LedgerDirection // DEBIT, CREDIT
+  amount    BigInt // сумма в минимальных единицах
+  txType    LedgerTxType // тип операции
+  txRef     String // ссылка на связанную операцию
+
+  // Статус
+  status LedgerStatus @default(PENDING) // PENDING, POSTED, SETTLED
+
+  // Идемпотентность
+  idempotencyKey String @unique
+
+  // Описание
+  description String?
+  metadata    Json? // дополнительные данные
+
+  // Временные метки
+  createdAt DateTime  @default(now())
+  postedAt  DateTime?
+  settledAt DateTime?
+
+  // Связи
+  user  User  @relation(fields: [userId], references: [id])
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@index([userId])
+  @@index([assetId])
+  @@index([status])
+  @@index([txType])
+  @@index([createdAt])
+  @@map("ledger_entries")
+}
+
+enum LedgerDirection {
+  DEBIT // списание
+  CREDIT // зачисление
+}
+
+enum LedgerTxType {
+  TRANSFER_INTERNAL // внутренний перевод
+  DEPOSIT_ONCHAIN // депозит с блокчейна
+  WITHDRAW_ONCHAIN // вывод в блокчейн
+  FEE // комиссия
+  REWARD // награда
+  ESCROW_LOCK // блокировка в эскроу
+  ESCROW_RELEASE // освобождение из эскроу
+  MINT_TOKEN // минт токенов
+  BURN_TOKEN // сжигание токенов
+  LENDING_SUPPLY // предоставление ликвидности в lending
+  LENDING_WITHDRAW // вывод ликвидности из lending
+  LENDING_BORROW // заимствование из lending
+  LENDING_REPAY // возврат долга в lending
+}
+
+enum LedgerStatus {
+  PENDING // ожидает обработки
+  POSTED // проведена в леджере
+  SETTLED // окончательно подтверждена
+  FAILED // не удалась
+  CANCELLED // отменена
+}
+
+// Заморозки средств (holds)
+model Hold {
+  id      String @id @default(cuid())
+  userId  String
+  assetId String
+
+  // Данные заморозки
+  amount      BigInt // замороженная сумма
+  purpose     HoldPurpose // цель заморозки
+  referenceId String? // ссылка на связанную сущность
+
+  // Статус
+  status HoldStatus @default(ACTIVE)
+
+  // Автоматическое освобождение
+  expiresAt DateTime?
+
+  // Описание
+  description String?
+  metadata    Json?
+
+  // Временные метки
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  releasedAt DateTime?
+
+  // Связи
+  user  User  @relation(fields: [userId], references: [id])
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@index([userId])
+  @@index([assetId])
+  @@index([status])
+  @@index([purpose])
+  @@index([expiresAt])
+  @@map("holds")
+}
+
+enum HoldPurpose {
+  ESCROW // эскроу сделка
+  WITHDRAW // ожидание вывода
+  FRAUD_CHECK // проверка на мошенничество
+  COMPLIANCE // комплаенс проверка
+  TRADE_ORDER // торговый ордер
+}
+
+enum HoldStatus {
+  ACTIVE // активная заморозка
+  RELEASED // освобождена
+  EXPIRED // истекла по времени
+  CANCELLED // отменена
+}
+
+// On-chain транзакции
+model OnchainTx {
+  id     String @id @default(cuid())
+  userId String
+
+  // Данные транзакции
+  signature String // Solana transaction signature (может быть не уникальным для разных пользователей)
+  status    OnchainTxStatus @default(PENDING)
+  slot      BigInt? // Solana slot number
+  blockTime DateTime? // время блока
+
+  // Детали транзакции
+  purpose OnchainPurpose // цель транзакции
+  amount  BigInt? // сумма (если применимо)
+  assetId String? // связанный актив
+
+  // Адреса
+  fromAddress String?
+  toAddress   String?
+
+  // Raw данные
+  rawTx        Json? // сырые данные транзакции
+  instructions Json? // инструкции транзакции
+
+  // Метаданные
+  gasUsed        BigInt? // использованный газ
+  fee            BigInt? // комиссия
+  memo           String? // memo поле
+  metadata       Json? // дополнительные метаданные (priority, idempotencyKey, etc.)
+  idempotencyKey String? // ключ идемпотентности для предотвращения дубликатов
+
+  // Связи с off-chain
+  ledgerEntryIds String[] // связанные записи в леджере
+
+  // Временные метки
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  confirmedAt DateTime?
+  finalizedAt DateTime?
+
+  // Связи
+  user  User   @relation(fields: [userId], references: [id])
+  asset Asset? @relation(fields: [assetId], references: [id])
+
+  @@index([userId])
+  @@index([signature])
+  @@index([status])
+  @@index([purpose])
+  @@index([slot])
+  @@index([blockTime])
+  @@index([userId, signature]) // составной индекс для уникальности пользователь+signature
+  @@map("onchain_txs")
+}
+
+enum OnchainTxStatus {
+  PENDING // отправлена, ожидает подтверждения
+  CONFIRMED // подтверждена
+  FINALIZED // финализирована
+  FAILED // не удалась
+  DROPPED // отброшена сетью
+}
+
+enum OnchainPurpose {
+  DEPOSIT // депозит в приложение
+  WITHDRAW // вывод из приложения
+  TOKEN_MINT // минт токенов
+  TOKEN_BURN // сжигание токенов
+  NFT_MINT // минт NFT
+  NFT_TRANSFER // перевод NFT
+  DAO_VOTE // голосование в DAO
+  ESCROW_CREATE // создание эскроу
+  ESCROW_RELEASE // освобождение эскроу
+  DEX_SWAP // обмен через DEX
+  FAUCET // получение токенов из фосета
+  STAKE // стейкинг
+  UNSTAKE // анстейкинг
+}
+
+// Курсы валют и токенов
+model Rate {
+  id String @id @default(cuid())
+
+  // Валютная пара
+  baseAssetId  String // базовый актив (например, SOL)
+  quoteAssetId String // котируемый актив (например, USDC)
+
+  // Курс
+  rate Decimal @db.Decimal(20, 8) // курс с высокой точностью
+
+  // Источник данных
+  source   RateSource
+  provider String? // имя провайдера (Pyth, Chainlink, etc.)
+
+  // Метаданные
+  confidence Decimal? @db.Decimal(5, 4) // уверенность в курсе (0-1)
+  volume24h  Decimal? @db.Decimal(20, 2) // объем торгов за 24ч
+
+  // Временные метки
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  // Связи
+  baseAsset  Asset @relation("BaseAsset", fields: [baseAssetId], references: [id])
+  quoteAsset Asset @relation("QuoteAsset", fields: [quoteAssetId], references: [id])
+
+  @@unique([baseAssetId, quoteAssetId, timestamp])
+  @@index([baseAssetId, quoteAssetId])
+  @@index([timestamp])
+  @@index([source])
+  @@map("rates")
+}
+
+// =====================================================================
+// LEARN TO EARN СИСТЕМА
+// =====================================================================
+
+// Уроки в курсах
+model Lesson {
+  id          String @id @default(cuid())
+  courseId    String
+  title       String
+  description String @db.Text
+
+  // Тип и контент
+  type              LessonType
+  content           String?    @db.Text // для текстовых уроков
+  videoUrl          String? // для видео уроков
+  interactiveConfig Json? // для интерактивных уроков
+
+  // Структура
+  order    Int // порядок в курсе
+  duration Int // в минутах
+
+  // Награды
+  xpReward    Int @default(50)
+  tokenReward Int @default(10) // TNG токены
+
+  // Ресурсы
+  resources Json? // дополнительные материалы
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  course       Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userProgress LessonProgress[]
+  quizzes      Quiz[]           @relation("LessonQuizzes")
+
+  @@index([courseId, order])
+  @@map("lessons")
+}
+
+// Квизы
+model Quiz {
+  id          String  @id @default(cuid())
+  courseId    String? // может быть независимым
+  lessonId    String? // может быть привязан к уроку
+  title       String
+  description String  @db.Text
+
+  // Настройки
+  type            QuizType @default(MULTIPLE_CHOICE)
+  timeLimit       Int? // в секундах
+  attemptsAllowed Int      @default(3)
+  passingScore    Int      @default(70) // процент для прохождения
+  isRandomized    Boolean  @default(false)
+
+  // Награды
+  xpReward    Int @default(25)
+  tokenReward Int @default(5) // TNG токены
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  course    Course?        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson    Lesson?        @relation("LessonQuizzes", fields: [lessonId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([courseId])
+  @@index([lessonId])
+  @@map("quizzes")
+}
+
+// Вопросы квизов
+model QuizQuestion {
+  id          String  @id @default(cuid())
+  quizId      String
+  question    String  @db.Text
+  explanation String? @db.Text
+
+  // Настройки
+  type   QuizType @default(MULTIPLE_CHOICE)
+  points Int      @default(10)
+  order  Int
+
+  // Варианты ответов (JSON)
+  options       Json? // для multiple choice
+  correctAnswer String // правильный ответ
+
+  // Медиа
+  imageUrl String?
+  videoUrl String?
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  quiz        Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userAnswers QuizAnswer[]
+
+  @@index([quizId, order])
+  @@map("quiz_questions")
+}
+
+// Прогресс по урокам
+model LessonProgress {
+  id           String @id @default(cuid())
+  userId       String
+  userCourseId String
+  lessonId     String
+
+  // Прогресс
+  progressPercentage Decimal  @default(0) @db.Decimal(5, 2)
+  timeSpent          Int      @default(0) // в минутах
+  isCompleted        Boolean  @default(false)
+  score              Decimal? @db.Decimal(5, 2)
+
+  // Заметки пользователя
+  notes String? @db.Text
+
+  // Временные метки
+  startedAt      DateTime  @default(now())
+  lastAccessedAt DateTime  @default(now())
+  completedAt    DateTime?
+
+  // Связи
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userCourse UserCourse @relation(fields: [userCourseId], references: [id], onDelete: Cascade)
+  lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([userCourseId])
+  @@map("lesson_progress")
+}
+
+// Попытки прохождения квизов
+model QuizAttempt {
+  id     String @id @default(cuid())
+  userId String
+  quizId String
+
+  // Результаты
+  score      Decimal @default(0) @db.Decimal(5, 2)
+  percentage Decimal @default(0) @db.Decimal(5, 2)
+  isPassed   Boolean @default(false)
+  timeSpent  Int // в секундах
+
+  // Временные метки
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  // Связи
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers QuizAnswer[]
+
+  @@index([userId])
+  @@index([quizId])
+  @@map("quiz_attempts")
+}
+
+// Ответы пользователей на вопросы квизов
+model QuizAnswer {
+  id         String @id @default(cuid())
+  attemptId  String
+  questionId String
+
+  // Ответ
+  userAnswer String  @db.Text
+  isCorrect  Boolean @default(false)
+  points     Int     @default(0)
+  timeSpent  Int     @default(0) // в секундах
+
+  // Временные метки
+  answeredAt DateTime @default(now())
+
+  // Связи
+  attempt  QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@map("quiz_answers")
+}
+
+// Сертификаты
+model Certificate {
+  id          String @id @default(cuid())
+  userId      String
+  courseId    String
+  title       String
+  description String @db.Text
+
+  // Blockchain данные
+  blockchainTxId  String? // on-chain сертификат
+  imageUrl        String?
+  verificationUrl String?
+
+  // Метаданные
+  skills     String[] // полученные навыки
+  grade      String? // оценка (A+, A, B+, etc.)
+  isVerified Boolean  @default(false)
+
+  // Временные метки
+  issueDate DateTime @default(now())
+
+  // Связи
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@map("certificates")
+}
+
+// Значки достижений
+model Badge {
+  id          String  @id @default(cuid())
+  userId      String
+  title       String
+  description String  @db.Text
+  imageUrl    String?
+
+  // Категория и редкость
+  category BadgeCategory
+  rarity   BadgeRarity   @default(COMMON)
+
+  // Прогресс
+  progress    Int @default(0)
+  maxProgress Int @default(1)
+
+  // Награды
+  xpReward    Int @default(0)
+  tokenReward Int @default(0)
+
+  // Временные метки
+  earnedAt DateTime @default(now())
+
+  // Связи
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@map("badges")
+}
+
+// Ежедневные вызовы
+model DailyChallenge {
+  id          String @id @default(cuid())
+  title       String
+  description String @db.Text
+
+  // Настройки
+  type   ChallengeType
+  target Int // целевое значение
+
+  // Награды
+  xpReward    Int     @default(50)
+  tokenReward Int     @default(25)
+  badgeReward String? // ID значка
+
+  // Активность
+  isActive  Boolean  @default(true)
+  expiresAt DateTime
+
+  // Временные метки
+  createdAt DateTime @default(now())
+
+  // Связи
+  userChallenges UserChallenge[]
+
+  @@map("daily_challenges")
+}
+
+// Прогресс пользователей по вызовам
+model UserChallenge {
+  id          String @id @default(cuid())
+  userId      String
+  challengeId String
+
+  // Прогресс
+  currentProgress Int     @default(0)
+  isCompleted     Boolean @default(false)
+
+  // Временные метки
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  // Связи
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge DailyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@index([userId])
+  @@map("user_challenges")
+}
+
+// Отзывы о курсах
+model CourseReview {
+  id       String @id @default(cuid())
+  userId   String
+  courseId String
+
+  // Отзыв
+  rating  Int // 1-5 звезд
+  comment String   @db.Text
+  pros    String[] // плюсы
+  cons    String[] // минусы
+
+  // Метаданные
+  isVerified   Boolean @default(false)
+  helpfulVotes Int     @default(0)
+  userProgress Decimal @default(0) @db.Decimal(5, 2) // прогресс на момент отзыва
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+  @@map("course_reviews")
+}
+
+// Достижения пользователей
+model Achievement {
+  id          String  @id @default(cuid())
+  userId      String
+  title       String
+  description String  @db.Text
+  iconUrl     String?
+
+  // Категория и редкость
+  category AchievementCategory
+  rarity   BadgeRarity         @default(COMMON)
+
+  // Прогресс
+  progress    Int     @default(0)
+  maxProgress Int     @default(1)
+  isUnlocked  Boolean @default(false)
+
+  // Награды
+  xpReward    Int     @default(0)
+  tokenReward Int     @default(0)
+  nftReward   String? // ID NFT награды
+
+  // Временные метки
+  createdAt  DateTime  @default(now())
+  unlockedAt DateTime?
+
+  // Связи
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@map("achievements")
+}
+
+// Рейтинг пользователей
+model Leaderboard {
+  id       String          @id @default(cuid())
+  userId   String
+  category CourseCategory?
+
+  // Статистика
+  totalXp          Int @default(0)
+  totalTokens      Int @default(0)
+  coursesCompleted Int @default(0)
+  currentStreak    Int @default(0)
+  longestStreak    Int @default(0)
+
+  // Рейтинги
+  globalRank   Int?
+  categoryRank Int?
+
+  // Временные метки
+  lastUpdated DateTime @default(now())
+
+  // Связи
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+  @@index([globalRank])
+  @@index([category, categoryRank])
+  @@map("leaderboard")
+}
+
+// =====================================================================
+// ENUMS ДЛЯ LEARN СИСТЕМЫ
+// =====================================================================
+
+enum CourseCategory {
+  BLOCKCHAIN
+  DEFI
+  NFT
+  TRADING
+  DEVELOPMENT
+  SECURITY
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum LessonType {
+  VIDEO
+  TEXT
+  INTERACTIVE
+  QUIZ
+  PRACTICAL
+}
+
+enum QuizType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  MATCHING
+  CODE_COMPLETION
+  PRACTICAL
+}
+
+enum BadgeCategory {
+  COMPLETION
+  STREAK
+  SCORE
+  PARTICIPATION
+  SPECIAL
+}
+
+enum BadgeRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum ChallengeType {
+  LESSON_COMPLETION
+  QUIZ_SCORE
+  STREAK
+  TIME_SPENT
+}
+
+enum AchievementCategory {
+  LEARNING
+  SOCIAL
+  STREAK
+  SCORE
+  COMPLETION
+}
+
+enum RateSource {
+  PYTH // Pyth Network
+  CHAINLINK // Chainlink
+  JUPITER // Jupiter DEX
+  COINGECKO // CoinGecko API
+  EXTERNAL_API // внешний API (для KZT)
+  MANUAL // ручное обновление
+}
+
+// Cross-Chain Bridge Transactions
+model BridgeTransaction {
+  id            String   @id @default(cuid())
+  txId          String   @unique
+  userId        String?
+  sourceChain   String
+  targetChain   String
+  sender        String
+  recipient     String
+  amount        Float
+  feeAmount     Float
+  tokenSymbol   String
+  status        String   @default("Pending")
+  createdAt     DateTime @default(now())
+  completedAt   DateTime?
+  
+  user User? @relation(fields: [userId], references: [id])
+  
+  @@map("bridge_transactions")
+}
+
+// Cross-Chain Swap Transactions  
+model CrossChainSwapTransaction {
+  id                String   @id @default(cuid())
+  txId              String   @unique
+  userId            String
+  sourceChain       String
+  targetChain       String
+  inputToken        String
+  outputToken       String
+  amountIn          Float
+  minimumAmountOut  Float
+  recipient         String
+  status            String   @default("Pending")
+  createdAt         DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@map("cross_chain_swap_transactions")
+}
+
+// Insurance Pool
+model InsurancePool {
+  id               String @id @default(cuid())
+  poolId           BigInt @unique
+  protectedProtocol String
+  coverageAmount   BigInt
+  premiumRate      Int    // basis points
+  totalPremiums    BigInt @default(0)
+  totalClaims      BigInt @default(0)
+  isActive         Boolean @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  policies         InsurancePolicy[]
+  claims           InsuranceClaim[]
+  
+  @@map("insurance_pools")
+}
+
+// Insurance Policy
+model InsurancePolicy {
+  id            String @id @default(cuid())
+  policyId      BigInt @unique
+  userId        String
+  poolId        BigInt
+  coverageAmount BigInt
+  premiumPaid   BigInt
+  startTime     DateTime
+  expiryTime    DateTime
+  isActive      Boolean @default(true)
+  createdAt     DateTime @default(now())
+  
+  user          User @relation(fields: [userId], references: [id])
+  pool          InsurancePool @relation(fields: [poolId], references: [poolId])
+  claims        InsuranceClaim[]
+  
+  @@map("insurance_policies")
+}
+
+// Insurance Claim
+model InsuranceClaim {
+  id           String @id @default(cuid())
+  claimId      BigInt @unique
+  policyId     BigInt
+  poolId       BigInt
+  claimAmount  BigInt
+  evidence     Json?
+  status       ClaimStatus @default(PENDING)
+  payoutAmount BigInt @default(0)
+  filedAt      DateTime @default(now())
+  processedAt  DateTime?
+  
+  policy       InsurancePolicy @relation(fields: [policyId], references: [policyId])
+  pool         InsurancePool @relation(fields: [poolId], references: [poolId])
+  
+  @@map("insurance_claims")
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+// Отложенные переводы для незарегистрированных пользователей
+model PendingTransfer {
+  id String @id @default(cuid())
+
+  // Отправитель (зарегистрированный пользователь)
+  senderId String
+  sender   User   @relation("SenderPendingTransfers", fields: [senderId], references: [id])
+
+  // Получатель (может быть не зарегистрирован)
+  recipientUsername String // Telegram username
+  recipientId       String? // ID пользователя если найден
+  recipient         User?   @relation("RecipientPendingTransfers", fields: [recipientId], references: [id])
+
+  // Данные перевода
+  token       String // SOL, TNG, USDC
+  amount      BigInt // количество токенов в минимальных единицах
+  memo        String? // комментарий от отправителя
+  isAnonymous Boolean @default(false) // анонимный перевод
+
+  // Статус
+  status PendingTransferStatus @default(PENDING)
+
+  // Метаданные
+  expiresAt    DateTime? // срок действия перевода
+  processedAt  DateTime? // время обработки
+  errorMessage String? // сообщение об ошибке
+
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([recipientUsername])
+  @@index([senderId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("pending_transfers")
+}
+
+enum PendingTransferStatus {
+  PENDING // ожидает регистрации получателя
+  PROCESSING // обрабатывается
+  COMPLETED // выполнен
+  EXPIRED // истек срок действия
+  CANCELLED // отменен
+  FAILED // ошибка при обработке
+}
+
+// NFT Collections
+model NFTCollection {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  imageUri    String?
+  bannerUri   String?
+  slug        String  @unique
+
+  // Creator info
+  creatorId  String
+  isVerified Boolean @default(false)
+
+  // Collection stats
+  totalSupply Int     @default(0)
+  totalVolume BigInt  @default(0) // in lamports
+  floorPrice  BigInt? // in lamports
+
+  // Social stats
+  likes NFTCollectionLike[]
+  views NFTCollectionView[]
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  creator User  @relation(fields: [creatorId], references: [id])
+  nfts    NFT[]
+
+  @@map("nft_collections")
+}
+
+// NFT Likes
+model NFTLike {
+  userId    String
+  nftId     String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nft  NFT  @relation(fields: [nftId], references: [id], onDelete: Cascade)
+
+  @@id([userId, nftId])
+  @@map("nft_likes")
+}
+
+// NFT Views  
+model NFTView {
+  id       String   @id @default(cuid())
+  userId   String
+  nftId    String
+  viewedAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nft  NFT  @relation(fields: [nftId], references: [id], onDelete: Cascade)
+
+  @@index([nftId])
+  @@index([userId])
+  @@index([viewedAt])
+  @@map("nft_views")
+}
+
+// NFT Shares
+model NFTShare {
+  id       String   @id @default(cuid())
+  userId   String
+  nftId    String
+  platform String   @default("telegram") // telegram, twitter, etc
+  sharedAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nft  NFT  @relation(fields: [nftId], references: [id], onDelete: Cascade)
+
+  @@index([nftId])
+  @@index([userId])
+  @@index([sharedAt])
+  @@map("nft_shares")
+}
+
+// NFT Collection Likes
+model NFTCollectionLike {
+  userId       String
+  collectionId String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection NFTCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, collectionId])
+  @@map("nft_collection_likes")
+}
+
+// NFT Collection Views
+model NFTCollectionView {
+  id           String   @id @default(cuid())
+  userId       String
+  collectionId String
+  viewedAt     DateTime @default(now())
+
+  // Relations
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection NFTCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@index([collectionId])
+  @@index([userId])
+  @@index([viewedAt])
+  @@map("nft_collection_views")
+}
+
+// NFT Transactions для отслеживания всех операций с NFT
+model NFTTransaction {
+  id              String  @id @default(cuid())
+  nftId           String? // Может быть null для создания до mint
+  fromUserId      String
+  toUserId        String? // Может быть null для листинга
+  type            String // CREATION, TRANSFER, PURCHASE, LISTING, DELISTING
+  amount          BigInt // В lamports (0 для не-платежных операций)
+  status          String // PENDING, COMPLETED, FAILED
+  transactionHash String? // Хеш транзакции в блокчейне
+
+  // Метаданные операции
+  metadata Json? // Дополнительная информация специфичная для типа операции
+
+  // Временные метки
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  // Relations
+  nft      NFT?  @relation(fields: [nftId], references: [id], onDelete: Cascade)
+  fromUser User  @relation("NFTTransactionsFrom", fields: [fromUserId], references: [id])
+  toUser   User? @relation("NFTTransactionsTo", fields: [toUserId], references: [id])
+
+  @@index([nftId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("nft_transactions")
+}
+
+// =====================================================================
+// DEFI MODELS - Staking, Farming, Swap Operations
+// =====================================================================
+
+// Staking Pools для TNG и SOL стейкинга
+model StakingPool {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  
+  // Token configuration
+  tokenMint  String // mint address токена для стейкинга
+  rewardMint String // mint address токена для наград
+  
+  // Pool parameters
+  apy             Decimal @db.Decimal(5, 2) // APY в процентах
+  minimumStake    BigInt // минимальная сумма стейкинга
+  lockupPeriod    Int     @default(0) // период блокировки в днях
+  totalStaked     BigInt  @default(0) // общая сумма застейканных токенов
+  totalRewards    BigInt  @default(0) // общая сумма выплаченных наград
+  maxCapacity     BigInt? // максимальная вместимость пула
+  
+  // Status and metadata
+  isActive    Boolean @default(true)
+  isRecommended Boolean @default(false)
+  riskLevel   StakingRiskLevel @default(LOW)
+  
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  positions StakingPosition[]
+  userStakes UserStake[]
+  
+  @@index([tokenMint])
+  @@index([isActive])
+  @@index([apy])
+  @@map("staking_pools")
+}
+
+// Staking Positions пользователей
+model StakingPosition {
+  id       String @id @default(cuid())
+  userId   String
+  poolId   String
+  
+  // Position data
+  stakedAmount  BigInt // застейканная сумма в минимальных единицах
+  rewardsEarned BigInt @default(0) // накопленные награды
+  
+  // Timing
+  stakeDate  DateTime // дата стейкинга
+  unlockDate DateTime? // дата разблокировки (если есть lockup)
+  
+  // Status
+  isActive Boolean @default(true)
+  
+  // Blockchain data
+  signature String? // Solana transaction signature
+  
+  // Metadata
+  metadata Json? // дополнительные данные (APY на момент стейкинга, etc)
+  
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pool StakingPool @relation(fields: [poolId], references: [id])
+  
+  @@unique([userId, poolId]) // один пользователь - одна позиция в пуле
+  @@index([userId])
+  @@index([poolId])
+  @@index([isActive])
+  @@map("staking_positions")
+}
+
+// Farming Pools для liquidity farming
+model FarmingPool {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  
+  // Token pair configuration
+  tokenAMint String // первый токен пары
+  tokenBMint String // второй токен пары
+  lpTokenMint String? // LP токен mint (если есть)
+  
+  // Pool metrics
+  apy        Decimal @db.Decimal(5, 2) // APY в процентах
+  tvl        BigInt  @default(0) // Total Value Locked
+  volume24h  BigInt  @default(0) // объем торгов за 24 часа
+  fees24h    BigInt  @default(0) // комиссии за 24 часа
+  feePercent Decimal @db.Decimal(5, 4) // процент комиссии (например, 0.25%)
+  
+  // Pool status
+  isActive   Boolean @default(true)
+  isStable   Boolean @default(false) // стабильная ли пара
+  riskLevel  FarmingRiskLevel @default(MEDIUM)
+  
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  positions FarmingPosition[]
+  
+  @@unique([tokenAMint, tokenBMint]) // уникальная пара токенов
+  @@index([isActive])
+  @@index([tvl])
+  @@index([apy])
+  @@map("farming_pools")
+}
+
+// Farming Positions пользователей
+model FarmingPosition {
+  id       String @id @default(cuid())
+  userId   String
+  poolId   String
+  
+  // Position data
+  tokenAAmount   BigInt // количество первого токена
+  tokenBAmount   BigInt // количество второго токена
+  lpTokenAmount  BigInt @default(0) // количество LP токенов
+  currentValue   Decimal @db.Decimal(20, 8) // текущая стоимость позиции в USD
+  
+  // Rewards and performance
+  rewardsEarned     BigInt  @default(0) // накопленные награды
+  impermanentLoss   Decimal @default(0) @db.Decimal(10, 4) // непостоянные потери
+  totalFeesEarned   BigInt  @default(0) // заработанные комиссии
+  
+  // Timing
+  depositDate DateTime // дата добавления ликвидности
+  
+  // Status
+  isActive Boolean @default(true)
+  
+  // Metadata
+  metadata Json? // дополнительные данные
+  
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pool FarmingPool @relation(fields: [poolId], references: [id])
+  
+  @@index([userId])
+  @@index([poolId])
+  @@index([isActive])
+  @@map("farming_positions")
+}
+
+// Swap Transactions для отслеживания обменов
+model SwapTransaction {
+  id String @id @default(cuid())
+  userId String
+  
+  // Swap data
+  inputMint    String // mint входящего токена
+  outputMint   String // mint исходящего токена
+  inputAmount  BigInt // количество входящего токена
+  outputAmount BigInt // количество полученного токена
+  
+  // Pricing and fees
+  rate         Decimal @db.Decimal(20, 8) // курс обмена
+  priceImpact  Decimal @db.Decimal(5, 4) // влияние на цену в %
+  fee          BigInt // комиссия за обмен
+  slippage     Decimal @db.Decimal(5, 4) // проскальзывание в %
+  
+  // Route information
+  route        Json? // маршрут обмена (через какие DEX)
+  routeInfo    String? // текстовое описание маршрута
+  
+  // Transaction details
+  signature    String // подпись транзакции
+  status       SwapStatus @default(PENDING)
+  
+  // Metadata
+  metadata     Json? // дополнительные данные
+  
+  // Временные метки
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([signature])
+  @@index([status])
+  @@index([createdAt])
+  @@map("swap_transactions")
+}
+
+// DeFi Portfolio Snapshots для аналитики
+model DeFiPortfolioSnapshot {
+  id     String @id @default(cuid())
+  userId String
+  
+  // Portfolio metrics
+  totalValue       Decimal @db.Decimal(20, 8) // общая стоимость в USD
+  totalStaked      BigInt  @default(0) // общая сумма в стейкинге
+  totalFarming     BigInt  @default(0) // общая сумма в фарминге
+  totalRewards     BigInt  @default(0) // общие накопленные награды
+  
+  // Performance metrics
+  dailyChange      Decimal @default(0) @db.Decimal(20, 8) // изменение за день в USD
+  dailyChangePercent Decimal @default(0) @db.Decimal(5, 2) // изменение за день в %
+  allTimeHigh      Decimal @default(0) @db.Decimal(20, 8) // максимальная стоимость
+  allTimeLow       Decimal @default(0) @db.Decimal(20, 8) // минимальная стоимость
+  
+  // Risk metrics
+  riskScore        Decimal @default(0) @db.Decimal(5, 2) // оценка риска 0-100
+  diversification  Decimal @default(0) @db.Decimal(5, 2) // диверсификация портфеля
+  
+  // Snapshot metadata
+  snapshotType SnapshotType @default(DAILY)
+  metadata     Json?
+  
+  // Временные метки
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([snapshotType])
+  @@map("defi_portfolio_snapshots")
+}
+
+
+// Пользовательские стейки
+model UserStake {
+  id       String @id @default(cuid())
+  userId   String
+  poolId   String
+  
+  // Stake info
+  amount         BigInt   // Количество застейканных токенов
+  rewards        BigInt   @default(0) // Накопленные награды
+  lastClaimAt    DateTime? // Последний раз когда были забраны награды
+  
+  // Metadata
+  metadata       Json?
+  
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pool StakingPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, poolId]) // Один стейк на пользователя на пул
+  @@index([userId])
+  @@index([poolId])
+  @@index([createdAt])
+  @@map("user_stakes")
+}
+
+// Lending Pools для DeFi кредитования
+model LendingPool {
+  id          String @id @default(cuid())
+  
+  // Pool identification
+  name        String
+  symbol      String
+  description String?
+  
+  // Token info
+  tokenMint      String // Mint address токена для кредитования
+  tokenSymbol    String // Символ токена (USDC, SOL, etc.)
+  tokenDecimals  Int    @default(9)
+  
+  // Pool parameters
+  totalSupply    BigInt  @default(0) // Общее количество предоставленных токенов
+  totalBorrowed  BigInt  @default(0) // Общее количество заимствованных токенов
+  supplyApy      Decimal @default(0) @db.Decimal(5, 2) // APY для поставщиков ликвидности
+  borrowApy      Decimal @default(0) @db.Decimal(5, 2) // APY для заемщиков
+  utilizationRate Decimal @default(0) @db.Decimal(5, 2) // Коэффициент использования
+  
+  // Risk parameters
+  ltv            Decimal @default(0) @db.Decimal(5, 2) // Loan-to-Value ratio
+  liquidationThreshold Decimal @default(0) @db.Decimal(5, 2) // Порог ликвидации
+  
+  // Pool status
+  isActive      Boolean @default(true)
+  isPaused      Boolean @default(false)
+  
+  // Metadata
+  metadata      Json?
+  
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  userPositions UserLendingPosition[]
+  
+  @@index([tokenMint])
+  @@index([isActive])
+  @@index([supplyApy])
+  @@index([borrowApy])
+  @@map("lending_pools")
+}
+
+// Пользовательские позиции в lending
+model UserLendingPosition {
+  id       String @id @default(cuid())
+  userId   String
+  poolId   String
+  
+  // Position info
+  suppliedAmount BigInt   @default(0) // Количество предоставленных токенов
+  borrowedAmount BigInt   @default(0) // Количество заимствованных токенов
+  collateralAmount BigInt @default(0) // Количество залога
+  
+  // Rewards and interest
+  supplyRewards  BigInt   @default(0) // Накопленные награды за поставку ликвидности
+  borrowInterest BigInt   @default(0) // Накопленные проценты по займу
+  
+  // Health factor
+  healthFactor   Decimal  @default(0) @db.Decimal(5, 2) // Фактор здоровья позиции
+  
+  // Metadata
+  metadata       Json?
+  
+  // Временные метки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pool LendingPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, poolId]) // Одна позиция на пользователя на пул
+  @@index([userId])
+  @@index([poolId])
+  @@index([healthFactor])
+  @@index([createdAt])
+  @@map("user_lending_positions")
+}
+
+// Flash Loans
+model FlashLoan {
+  id          String @id @default(cuid())
+  userId      String
+  poolAddress String
+  
+  // Flash loan details
+  amount      String // Amount borrowed as string to handle large numbers
+  fee         String // Fee paid for the flash loan
+  signature   String // Transaction signature
+  
+  // Status
+  status      FlashLoanStatus @default(PENDING)
+  
+  // Metadata
+  metadata    Json?
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([poolAddress])
+  @@index([status])
+  @@index([createdAt])
+  @@map("flash_loans")
+}
+
+enum FlashLoanStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+// =====================================================================
+// DEFI ENUMS
+// =====================================================================
+
+enum StakingRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum FarmingRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+enum SwapStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SnapshotType {
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+}

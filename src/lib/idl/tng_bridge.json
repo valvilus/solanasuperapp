@@ -1,0 +1,61 @@
+{
+  "address": "8xgG6u61Hat3rLyn6VnTFq1KCQ9oWSgGXgEqaCN6LqLm",
+  "metadata": { "name": "tng_bridge", "version": "0.1.0", "spec": "0.1.0" },
+  "instructions": [
+    {
+      "name": "lock_tokens",
+      "accounts": [
+        { "name": "bridge_config", "writable": false },
+        { "name": "bridge_transaction", "writable": true },
+        { "name": "user", "writable": true, "signer": true },
+        { "name": "user_token_account", "writable": true },
+        { "name": "bridge_vault", "writable": true },
+        { "name": "token_program" },
+        { "name": "system_program" }
+      ],
+      "args": [
+        { "name": "target_chain", "type": { "defined": { "name": "ChainId" } } },
+        { "name": "recipient", "type": "string" },
+        { "name": "amount", "type": "u64" },
+        { "name": "token_mint", "type": "pubkey" }
+      ]
+    },
+    {
+      "name": "unlock_tokens",
+      "accounts": [
+        { "name": "bridge_config", "writable": false },
+        { "name": "bridge_transaction", "writable": true },
+        { "name": "bridge_vault", "writable": true },
+        { "name": "recipient_token_account", "writable": true },
+        { "name": "vault_authority" },
+        { "name": "token_program" }
+      ],
+      "args": [
+        { "name": "source_chain", "type": { "defined": { "name": "ChainId" } } },
+        { "name": "transaction_hash", "type": "string" },
+        { "name": "recipient", "type": "pubkey" },
+        { "name": "amount", "type": "u64" },
+        { "name": "token_mint", "type": "pubkey" },
+        { "name": "validator_signatures", "type": { "vec": { "array": ["u8", 64] } } }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "ChainId",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          { "name": "Solana" },
+          { "name": "Ethereum" },
+          { "name": "BSC" },
+          { "name": "Polygon" },
+          { "name": "Avalanche" },
+          { "name": "Arbitrum" },
+          { "name": "Optimism" }
+        ]
+      }
+    }
+  ]
+}
+
